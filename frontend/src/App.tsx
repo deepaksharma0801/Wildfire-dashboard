@@ -20,6 +20,7 @@ import {
   FireCollection,
   FireFeature,
   FireProperties,
+  ImageryProduct,
   IncidentReport,
   IncidentSummary,
   RiskCellFeature,
@@ -99,6 +100,8 @@ function App() {
   const [selectedRiskCell, setSelectedRiskCell] = useState<RiskCellProperties | null>(null);
   const [incidentSummary, setIncidentSummary] = useState<IncidentSummary | null>(null);
   const [incidentReport, setIncidentReport] = useState<IncidentReport | null>(null);
+  const [imageryProduct, setImageryProduct] = useState<ImageryProduct | null>(null);
+  const [imageryError, setImageryError] = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
   const [filters, setFilters] = useState(initialFilters);
@@ -382,6 +385,36 @@ function App() {
     return () => controller.abort();
   }, [filters, selectedCluster]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const incidentId = selectedCluster?.id ?? "sample";
+
+    async function fetchImageryProduct() {
+      setImageryError(null);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/imagery/${incidentId}/before-after`, {
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(`Imagery API returned ${response.status}`);
+        }
+
+        setImageryProduct((await response.json()) as ImageryProduct);
+      } catch (requestError) {
+        if ((requestError as Error).name !== "AbortError") {
+          setImageryProduct(null);
+          setImageryError((requestError as Error).message);
+        }
+      }
+    }
+
+    fetchImageryProduct();
+
+    return () => controller.abort();
+  }, [selectedCluster]);
+
   async function generateIncidentReport() {
     if (!incidentSummary) {
       return;
@@ -408,6 +441,58 @@ function App() {
       setReportLoading(false);
     }
   }
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    const syncBurnScarLayer = () => {
+      const burnScar = imageryProduct?.burn_scar ?? {
+        type: "FeatureCollection",
+        features: []
+      };
+      const existingSource = map.getSource("burn-scar") as GeoJSONSource | undefined;
+
+      if (existingSource) {
+        existingSource.setData(burnScar);
+        return;
+      }
+
+      map.addSource("burn-scar", {
+        type: "geojson",
+        data: burnScar
+      });
+
+      map.addLayer({
+        id: "burn-scar-fill",
+        type: "fill",
+        source: "burn-scar",
+        paint: {
+          "fill-color": "#7f1d1d",
+          "fill-opacity": 0.38
+        }
+      }, map.getLayer("fire-halos") ? "fire-halos" : undefined);
+
+      map.addLayer({
+        id: "burn-scar-line",
+        type: "line",
+        source: "burn-scar",
+        paint: {
+          "line-color": "#fef2f2",
+          "line-width": 1.6,
+          "line-opacity": 0.85
+        }
+      }, map.getLayer("fire-halos") ? "fire-halos" : undefined);
+    };
+
+    if (map.isStyleLoaded()) {
+      syncBurnScarLayer();
+    } else {
+      map.once("load", syncBurnScarLayer);
+    }
+  }, [imageryProduct]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -881,6 +966,10 @@ function App() {
             <span>Risk model</span>
             <strong>{riskGrid.metadata?.model_version ?? "pending"}</strong>
           </div>
+          <div className="source-card">
+            <span>Imagery source</span>
+            <strong>{imageryProduct?.metadata.source ?? "pending"}</strong>
+          </div>
         </section>
 
         <section className="layer-panel" aria-label="Active layers">
@@ -904,6 +993,63 @@ function App() {
             <span className="layer-dot risk" />
             <span>Risk grid</span>
           </div>
+          <div className="layer-row">
+            <span className="layer-dot burn" />
+            <span>Burn scar mask</span>
+          </div>
+        </section>
+
+        <section className="detail-panel" aria-label="Satellite burn scar analysis">
+          <div className="section-heading">
+            <Satellite size={18} aria-hidden="true" />
+            <h2>Satellite Analysis</h2>
+          </div>
+          {imageryProduct ? (
+            <div className="imagery-stack">
+              <div>
+                <p className="eyebrow">{imageryProduct.sensor}</p>
+                <h3>{imageryProduct.title}</h3>
+              </div>
+              <div className="imagery-compare">
+                <figure>
+                  <img src={`${API_BASE_URL}${imageryProduct.before_image_url}`} alt="Before satellite sample" />
+                  <figcaption>Before · {imageryProduct.before_date}</figcaption>
+                </figure>
+                <figure>
+                  <img src={`${API_BASE_URL}${imageryProduct.after_image_url}`} alt="After satellite sample" />
+                  <figcaption>After · {imageryProduct.after_date}</figcaption>
+                </figure>
+              </div>
+              <dl>
+                <div>
+                  <dt>Burn area</dt>
+                  <dd>{imageryProduct.burn_area_hectares.toLocaleString()} ha</dd>
+                </div>
+                <div>
+                  <dt>Mean dNBR</dt>
+                  <dd>{imageryProduct.dnbr_mean}</dd>
+                </div>
+                <div>
+                  <dt>Severity</dt>
+                  <dd>{imageryProduct.severity_class}</dd>
+                </div>
+                <div>
+                  <dt>Cloud cover</dt>
+                  <dd>{imageryProduct.cloud_cover_percent}%</dd>
+                </div>
+              </dl>
+              <div className="severity-bars" aria-label="Burn severity mix">
+                {Object.entries(imageryProduct.severity_mix).map(([label, value]) => (
+                  <div key={label}>
+                    <span>{label.replace("_", " ")}</span>
+                    <strong style={{ width: `${value}%` }}>{value}%</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="empty-copy">{imageryError ?? "Loading sample imagery product"}</p>
+          )}
         </section>
 
         <section className="detail-panel" aria-label="Risk grid detail">

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="480" viewBox="0 0 780 480" role="img" aria-label="Sample false-color satellite view after wildfire">
+  <rect width="780" height="480" fill="#253f36"/>
+  <path d="M0 82 C120 18 205 45 300 88 C430 145 545 85 780 52 L780 0 L0 0 Z" fill="#335e48"/>
+  <path d="M0 410 C105 355 185 388 276 428 C395 480 498 425 780 374 L780 480 L0 480 Z" fill="#1d352f"/>
+  <path d="M40 270 C170 212 242 230 341 278 C435 323 520 312 704 244" fill="none" stroke="#6f8f61" stroke-width="38" stroke-linecap="round" opacity=".42"/>
+  <path d="M72 256 C188 212 248 244 332 282 C456 338 548 306 724 260" fill="none" stroke="#839d68" stroke-width="18" stroke-linecap="round" opacity=".55"/>
+  <path d="M116 96 C224 138 308 150 394 120 C480 90 584 126 690 168" fill="none" stroke="#426c54" stroke-width="58" stroke-linecap="round" opacity=".42"/>
+  <path d="M110 102 C224 142 310 152 395 126 C482 99 578 132 684 172" fill="none" stroke="#63885f" stroke-width="28" stroke-linecap="round" opacity=".62"/>
+  <path d="M250 148 C330 92 425 110 492 170 C566 236 577 322 514 382 C454 438 348 426 282 366 C203 294 172 202 250 148 Z" fill="#352d2a" opacity=".92"/>
+  <path d="M302 172 C364 138 434 154 482 204 C532 256 524 326 471 358 C416 392 340 374 300 320 C260 268 250 202 302 172 Z" fill="#5c332c" opacity=".76"/>
+  <path d="M350 198 C398 178 447 195 476 238 C500 276 488 318 452 338 C410 360 356 342 332 302 C305 257 314 214 350 198 Z" fill="#8a4638" opacity=".72"/>
+  <g opacity=".36" fill="#d5c78c">
+    <ellipse cx="154" cy="350" rx="48" ry="24" transform="rotate(-16 154 350)"/>
+    <ellipse cx="634" cy="78" rx="56" ry="18" transform="rotate(12 634 78)"/>
+    <ellipse cx="508" cy="392" rx="72" ry="28" transform="rotate(-9 508 392)"/>
+  </g>
+  <g opacity=".28" stroke="#132e2a" stroke-width="3">
+    <path d="M26 38 L742 440"/>
+    <path d="M174 0 L780 302"/>
+    <path d="M0 310 L395 480"/>
+  </g>
+  <text x="28" y="48" fill="#f8faf8" font-family="Arial, sans-serif" font-size="24" font-weight="700">After · dNBR burn scar sample</text>
+  <text x="28" y="82" fill="#dbe8df" font-family="Arial, sans-serif" font-size="17">Dark red/brown area represents the sample burn scar mask.</text>
+</svg>

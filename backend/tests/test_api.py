@@ -138,3 +138,24 @@ def test_risk_grid_rejects_invalid_horizon() -> None:
     response = client.get("/api/risk/grid?data_source=sample&horizon_hours=12")
 
     assert response.status_code == 422
+
+
+def test_imagery_search_returns_sample_products() -> None:
+    response = client.get("/api/imagery/search")
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["metadata"]["source"] == "sample_sentinel2_burn_scar_demo"
+    assert payload["products"]
+    assert "burn_area_hectares" in payload["products"][0]
+
+
+def test_imagery_before_after_returns_burn_scar_overlay() -> None:
+    response = client.get("/api/imagery/sample/before-after")
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["before_image_url"].endswith(".svg")
+    assert payload["after_image_url"].endswith(".svg")
+    assert payload["burn_scar"]["type"] == "FeatureCollection"
+    assert payload["burn_area_hectares"] > 0

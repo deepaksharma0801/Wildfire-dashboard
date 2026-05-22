@@ -204,3 +204,37 @@ export interface RiskGridCollection extends FeatureCollection<Polygon, RiskCellP
     limitations: string[];
   };
 }
+
+export interface ImageryProduct {
+  id: string;
+  incident_id: string;
+  title: string;
+  source: string;
+  sensor: string;
+  before_date: string;
+  after_date: string;
+  cloud_cover_percent: number;
+  bounds: [number, number, number, number];
+  burn_area_hectares: number;
+  dnbr_mean: number;
+  severity_class: string;
+  severity_mix: {
+    unburned_low: number;
+    low: number;
+    moderate: number;
+    high: number;
+  };
+  before_image_url: string;
+  after_image_url: string;
+  burn_scar: FeatureCollection<Polygon, {
+    id: string;
+    severity: string;
+    dnbr_mean: number;
+    area_hectares: number;
+  }>;
+  metadata: {
+    source: string;
+    method: string;
+    limitations: string[];
+  };
+}

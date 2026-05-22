@@ -19,6 +19,12 @@ from app.db import DatabaseUnavailable, fetch_county_collection, fetch_fire_coll
 from app.db import fetch_fire_clusters as fetch_db_fire_clusters
 from app.db import fetch_incident_summary as fetch_db_incident_summary
 from app.exposure import get_cluster_collection, get_incident_summary
+from app.imagery import (
+    ImageryUnavailable,
+    before_after_product,
+    imagery_asset_response,
+    search_imagery_products,
+)
 from app.reports import generate_template_report, validate_summary
 from app.risk import build_file_risk_grid, build_risk_grid_from_features
 from app.weather import WeatherUnavailable, get_weather_context, unavailable_weather_context
@@ -350,3 +356,29 @@ def get_risk_grid(
 
     grid["metadata"]["requested_data_source"] = data_source
     return grid
+
+
+@app.get("/api/imagery/search")
+def search_imagery(
+    query: str | None = Query(default=None),
+) -> dict:
+    try:
+        return search_imagery_products(query=query)
+    except ImageryUnavailable as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+
+
+@app.get("/api/imagery/{incident_id}/before-after")
+def get_before_after_imagery(incident_id: str) -> dict:
+    try:
+        return before_after_product(incident_id)
+    except ImageryUnavailable as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+
+
+@app.get("/api/imagery/assets/{file_name}")
+def get_imagery_asset(file_name: str):
+    try:
+        return imagery_asset_response(file_name)
+    except ImageryUnavailable as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "sample-mogollon-rim-burn-2025",
+    "incident_id": "sample",
+    "title": "Mogollon Rim burn scar sample",
+    "source": "Sentinel-2 style local demo",
+    "sensor": "Sentinel-2 MSI false-color/NBR sample",
+    "before_date": "2025-05-08",
+    "after_date": "2025-06-19",
+    "cloud_cover_percent": 3.8,
+    "bounds": [-112.95, 34.18, -112.35, 34.72],
+    "burn_area_hectares": 4280,
+    "dnbr_mean": 0.43,
+    "severity_class": "moderate-high",
+    "severity_mix": {
+      "unburned_low": 18,
+      "low": 24,
+      "moderate": 39,
+      "high": 19
+    },
+    "before_asset": "mogollon_rim_before.svg",
+    "after_asset": "mogollon_rim_after.svg",
+    "burn_scar": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "id": "burn-scar-sample-001",
+            "severity": "moderate-high",
+            "dnbr_mean": 0.43,
+            "area_hectares": 4280
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [-112.73, 34.61],
+                [-112.62, 34.66],
+                [-112.48, 34.61],
+                [-112.42, 34.49],
+                [-112.47, 34.36],
+                [-112.61, 34.30],
+                [-112.76, 34.35],
+                [-112.82, 34.47],
+                [-112.73, 34.61]
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

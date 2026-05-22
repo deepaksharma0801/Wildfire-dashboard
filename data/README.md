@@ -39,3 +39,5 @@ CENSUS_API_KEY=your_key python scripts/ingest_acs.py
 Without a Census key, the project uses `data/sample/arizona_county_exposure_sample.json` so the exposure workflow still runs locally.
 
 Phase 7 adds `data/sample/arizona_historical_fire_priors.json`, a small transparent historical-risk proxy used by the baseline risk grid. It is intentionally sample portfolio data until the MTBS historical burn-perimeter pipeline is implemented.
+
+Phase 8 adds `data/sample/imagery/`, which contains local Sentinel-2-style before/after sample images and a burn scar mask manifest. These files keep the satellite analysis demo runnable before the Copernicus ingestion and raster-processing pipeline is added.

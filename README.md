@@ -230,3 +230,28 @@ curl "http://127.0.0.1:8000/api/risk/grid?data_source=sample&horizon_hours=72"
 In the app, the risk grid appears as a yellow-orange-red overlay. Click a grid cell to inspect its score, recent activity, historical prior, intensity, and nearby detection count.
 
 No new API keys are required for Phase 7. Later iterations should replace the sample historical priors with MTBS-derived features and add weather, fuel, terrain, and evaluated train/test splits.
+
+## Phase 8 Satellite Burn Scar Analysis
+
+Phase 8 adds the first satellite/CV-style workflow. The current implementation uses local Sentinel-2-style sample imagery so the demo works without Copernicus credentials or raster downloads.
+
+New endpoints:
+
+- `GET /api/imagery/search`
+- `GET /api/imagery/{incident_id}/before-after`
+
+Useful API examples:
+
+```bash
+curl "http://127.0.0.1:8000/api/imagery/search"
+curl "http://127.0.0.1:8000/api/imagery/sample/before-after"
+```
+
+The app now includes a **Satellite Analysis** panel with:
+
+- before/after false-color sample imagery
+- burn scar mask overlay on the map
+- burn area, mean dNBR, cloud cover, and severity class
+- severity mix bars
+
+No new API keys are required for this demo slice. The production version should connect this to Copernicus Sentinel-2 scenes, compute NDVI/NBR/dNBR from raster bands, and replace the sample mask with MTBS-derived or model-predicted burn polygons.
