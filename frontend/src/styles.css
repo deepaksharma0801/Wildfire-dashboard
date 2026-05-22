@@ -162,6 +162,16 @@ input[type="date"] {
   border-radius: 6px;
 }
 
+select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  color: #14201f;
+  background: #f8faf8;
+  border: 1px solid #c7d5cf;
+  border-radius: 6px;
+}
+
 input[type="range"] {
   width: 100%;
   accent-color: #b42318;
@@ -207,6 +217,27 @@ input[type="range"] {
 
 .layer-row.muted {
   color: #71857e;
+}
+
+.source-card {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: #f8faf8;
+  border: 1px solid #dbe5e0;
+  border-radius: 6px;
+}
+
+.source-card span {
+  color: #5f746d;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.source-card strong {
+  color: #183c35;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .layer-dot {

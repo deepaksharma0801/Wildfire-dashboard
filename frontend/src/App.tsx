@@ -3,6 +3,7 @@ import maplibregl, { GeoJSONSource, MapLayerMouseEvent } from "maplibre-gl";
 import type { FeatureCollection, Polygon } from "geojson";
 import {
   CalendarDays,
+  DatabaseZap,
   Flame,
   Layers,
   RotateCcw,
@@ -36,9 +37,10 @@ const arizonaBounds: FeatureCollection<Polygon> = {
 };
 
 const initialFilters = {
-  startDate: "2026-05-13",
-  endDate: "2026-05-21",
-  minConfidence: 50
+  startDate: "",
+  endDate: "",
+  minConfidence: 50,
+  dataSource: "auto"
 };
 
 const emptyCollection: FireCollection = {
@@ -106,7 +108,8 @@ function App() {
 
       const params = new URLSearchParams({
         bbox: ARIZONA_BBOX,
-        min_confidence: String(filters.minConfidence)
+        min_confidence: String(filters.minConfidence),
+        data_source: filters.dataSource
       });
 
       if (filters.startDate) {
@@ -126,7 +129,7 @@ function App() {
         }
 
         const payload = (await response.json()) as FireCollection;
-        setFires(payload);
+          setFires(payload);
       } catch (requestError) {
         if ((requestError as Error).name !== "AbortError") {
           setError((requestError as Error).message);
@@ -335,10 +338,35 @@ function App() {
             />
           </div>
 
+          <label>
+            <span>Data source</span>
+            <select
+              value={filters.dataSource}
+              onChange={(event) =>
+                setFilters((current) => ({ ...current, dataSource: event.target.value }))
+              }
+            >
+              <option value="auto">Auto</option>
+              <option value="sample">Sample</option>
+              <option value="live">Live FIRMS</option>
+            </select>
+          </label>
+
           <button className="icon-button" type="button" onClick={() => setFilters(initialFilters)}>
             <RotateCcw size={16} aria-hidden="true" />
             Reset filters
           </button>
+        </section>
+
+        <section className="layer-panel" aria-label="Active layers">
+          <div className="section-heading">
+            <DatabaseZap size={18} aria-hidden="true" />
+            <h2>Data Feed</h2>
+          </div>
+          <div className="source-card">
+            <span>Resolved source</span>
+            <strong>{fires.metadata?.source ?? "pending"}</strong>
+          </div>
         </section>
 
         <section className="layer-panel" aria-label="Active layers">
@@ -406,7 +434,11 @@ function App() {
         <div ref={mapContainer} className="map-container" />
         <div className="map-status">
           <Satellite size={16} aria-hidden="true" />
-          <span>{loading ? "Loading detections" : `${stats.count} detections visible`}</span>
+          <span>
+            {loading
+              ? "Loading detections"
+              : `${stats.count} detections visible from ${fires.metadata?.source ?? "source"}`}
+          </span>
           {error ? <strong>{error}</strong> : null}
         </div>
       </section>

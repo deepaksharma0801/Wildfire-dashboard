@@ -32,6 +32,8 @@ export interface FireCollection {
   metadata?: {
     count: number;
     source: string;
+    requested_data_source?: string;
+    raw_count?: number;
     filters: Record<string, string | number | null>;
   };
 }

@@ -58,4 +58,30 @@ The app runs at `http://127.0.0.1:5173`.
 ### Phase 1 Endpoints
 
 - `GET /health`
-- `GET /api/fires?start_date=&end_date=&bbox=&min_confidence=`
+- `GET /api/fires?start_date=&end_date=&bbox=&min_confidence=&data_source=`
+
+## Phase 2 FIRMS Ingestion
+
+Live fire detections use the [NASA FIRMS Area API](https://firms.modaps.eosdis.nasa.gov/api/area/). You need a free FIRMS `MAP_KEY`.
+
+```bash
+cd backend
+source .venv/bin/activate
+FIRMS_MAP_KEY=your_key python scripts/ingest_firms.py --day-range 3
+```
+
+The ingestion script:
+
+- downloads Arizona-bounded FIRMS CSV data
+- stores raw CSV under `data/raw/firms/`
+- normalizes detections into GeoJSON at `data/processed/firms_arizona_latest.geojson`
+- deduplicates detections by source, time, coordinates, satellite, and instrument
+
+The API defaults to `data_source=auto`, which serves live FIRMS data if the processed file exists and falls back to the sample dataset otherwise.
+
+Useful API examples:
+
+```bash
+curl "http://127.0.0.1:8000/api/fires?data_source=sample"
+curl "http://127.0.0.1:8000/api/fires?data_source=live&min_confidence=60"
+```

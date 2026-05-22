@@ -1,22 +1,50 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import date, datetime
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_FIRE_DATA_PATH = PROJECT_ROOT / "data" / "sample" / "firms_arizona_sample.geojson"
+LIVE_FIRE_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "firms_arizona_latest.geojson"
 
 FeatureCollection = dict[str, Any]
 BBox = tuple[float, float, float, float]
+DataSource = str
 
 
-@lru_cache(maxsize=1)
-def load_fire_collection() -> FeatureCollection:
-    with SAMPLE_FIRE_DATA_PATH.open("r", encoding="utf-8") as file:
-        return json.load(file)
+class DataSourceUnavailable(ValueError):
+    """Raised when a requested local fire data source does not exist yet."""
+
+
+def resolve_fire_data_path(data_source: DataSource = "auto") -> tuple[Path, str]:
+    if data_source not in {"auto", "sample", "live"}:
+        raise ValueError("data_source must be one of auto,sample,live")
+
+    if data_source == "sample":
+        return SAMPLE_FIRE_DATA_PATH, "sample_firms_like_arizona"
+
+    if data_source == "live":
+        if not LIVE_FIRE_DATA_PATH.exists():
+            raise DataSourceUnavailable(
+                "live FIRMS data is not available yet; run backend/scripts/ingest_firms.py first"
+            )
+        return LIVE_FIRE_DATA_PATH, "nasa_firms_area_api"
+
+    preferred_source = os.getenv("FIRE_DATA_SOURCE", "auto")
+    if preferred_source == "sample":
+        return SAMPLE_FIRE_DATA_PATH, "sample_firms_like_arizona"
+    if LIVE_FIRE_DATA_PATH.exists():
+        return LIVE_FIRE_DATA_PATH, "nasa_firms_area_api"
+    return SAMPLE_FIRE_DATA_PATH, "sample_firms_like_arizona"
+
+
+def load_fire_collection(data_source: DataSource = "auto") -> tuple[FeatureCollection, str]:
+    path, resolved_source = resolve_fire_data_path(data_source)
+    with path.open("r", encoding="utf-8") as file:
+        return json.load(file), resolved_source
 
 
 def parse_bbox(value: str | None) -> BBox | None:

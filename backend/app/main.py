@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.data import filter_fire_features, load_fire_collection, parse_bbox
+from app.data import DataSourceUnavailable, filter_fire_features, load_fire_collection, parse_bbox
 
 app = FastAPI(
     title="Wildfire GeoAI API",
@@ -39,6 +40,10 @@ def get_fires(
         description="Optional west,south,east,north bounding box.",
     ),
     min_confidence: int = Query(default=0, ge=0, le=100),
+    data_source: Literal["auto", "sample", "live"] = Query(
+        default="auto",
+        description="Use sample data, live FIRMS output, or auto-detect live then sample.",
+    ),
 ) -> dict:
     if start_date and end_date and start_date > end_date:
         raise HTTPException(status_code=400, detail="start_date must be before end_date")
@@ -48,7 +53,13 @@ def get_fires(
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
-    collection = load_fire_collection()
+    try:
+        collection, resolved_source = load_fire_collection(data_source)
+    except DataSourceUnavailable as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
     features = filter_fire_features(
         collection,
         start_date=start_date,
@@ -62,12 +73,15 @@ def get_fires(
         "features": features,
         "metadata": {
             "count": len(features),
-            "source": "sample_firms_like_arizona",
+            "source": resolved_source,
+            "requested_data_source": data_source,
+            "raw_count": len(collection.get("features", [])),
             "filters": {
                 "start_date": start_date.isoformat() if start_date else None,
                 "end_date": end_date.isoformat() if end_date else None,
                 "bbox": bbox,
                 "min_confidence": min_confidence,
+                "data_source": data_source,
             },
         },
     }
