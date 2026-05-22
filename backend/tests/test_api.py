@@ -44,3 +44,13 @@ def test_fires_metadata_includes_requested_data_source() -> None:
     assert response.status_code == 200
     assert payload["metadata"]["requested_data_source"] == "sample"
     assert payload["metadata"]["source"] == "sample_firms_like_arizona"
+
+
+def test_counties_returns_geojson() -> None:
+    response = client.get("/api/counties?data_source=sample")
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["type"] == "FeatureCollection"
+    assert payload["metadata"]["count"] == 15
+    assert payload["features"][0]["properties"]["name"]

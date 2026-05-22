@@ -10,7 +10,14 @@ import {
   Satellite,
   SlidersHorizontal
 } from "lucide-react";
-import { FireCollection, FireFeature, FireProperties } from "./types";
+import {
+  CountyCollection,
+  CountyFeature,
+  CountyProperties,
+  FireCollection,
+  FireFeature,
+  FireProperties
+} from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const ARIZONA_BBOX = "-115.1,31.2,-108.8,37.1";
@@ -48,11 +55,22 @@ const emptyCollection: FireCollection = {
   features: []
 };
 
+const emptyCountyCollection: CountyCollection = {
+  type: "FeatureCollection",
+  features: []
+};
+
+function countyName(properties: CountyProperties) {
+  return properties.name ?? properties.NAME ?? "Selected county";
+}
+
 function App() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [fires, setFires] = useState<FireCollection>(emptyCollection);
+  const [counties, setCounties] = useState<CountyCollection>(emptyCountyCollection);
   const [selectedFire, setSelectedFire] = useState<FireProperties | null>(null);
+  const [selectedCounty, setSelectedCounty] = useState<CountyProperties | null>(null);
   const [filters, setFilters] = useState(initialFilters);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,10 +163,107 @@ function App() {
   }, [filters]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const countyDataSource = filters.dataSource === "db" ? "db" : "auto";
+
+    async function fetchCounties() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/counties?data_source=${countyDataSource}`, {
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(`County API returned ${response.status}`);
+        }
+
+        const payload = (await response.json()) as CountyCollection;
+        setCounties(payload);
+      } catch (requestError) {
+        if ((requestError as Error).name !== "AbortError") {
+          setCounties(emptyCountyCollection);
+        }
+      }
+    }
+
+    fetchCounties();
+
+    return () => controller.abort();
+  }, [filters.dataSource]);
+
+  useEffect(() => {
     if (selectedFire && !fires.features.some((feature) => feature.properties.id === selectedFire.id)) {
       setSelectedFire(null);
     }
   }, [fires, selectedFire]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    const syncCountyLayer = () => {
+      const existingSource = map.getSource("counties") as GeoJSONSource | undefined;
+
+      if (existingSource) {
+        existingSource.setData(counties);
+        return;
+      }
+
+      map.addSource("counties", {
+        type: "geojson",
+        data: counties
+      });
+
+      map.addLayer({
+        id: "county-fill",
+        type: "fill",
+        source: "counties",
+        paint: {
+          "fill-color": "#0891b2",
+          "fill-opacity": [
+            "case",
+            ["boolean", ["feature-state", "selected"], false],
+            0.18,
+            0.07
+          ]
+        }
+      }, map.getLayer("fire-halos") ? "fire-halos" : undefined);
+
+      map.addLayer({
+        id: "county-line",
+        type: "line",
+        source: "counties",
+        paint: {
+          "line-color": "#0e7490",
+          "line-width": 1.5,
+          "line-opacity": 0.8
+        }
+      }, map.getLayer("fire-halos") ? "fire-halos" : undefined);
+
+      map.on("click", "county-fill", (event: MapLayerMouseEvent) => {
+        const feature = event.features?.[0] as unknown as CountyFeature | undefined;
+        if (!feature) {
+          return;
+        }
+        setSelectedCounty(feature.properties);
+      });
+
+      map.on("mouseenter", "county-fill", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+
+      map.on("mouseleave", "county-fill", () => {
+        map.getCanvas().style.cursor = "";
+      });
+    };
+
+    if (map.isStyleLoaded()) {
+      syncCountyLayer();
+    } else {
+      map.once("load", syncCountyLayer);
+    }
+  }, [counties]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -347,6 +462,7 @@ function App() {
               }
             >
               <option value="auto">Auto</option>
+              <option value="db">PostGIS</option>
               <option value="sample">Sample</option>
               <option value="live">Live FIRMS</option>
             </select>
@@ -367,6 +483,10 @@ function App() {
             <span>Resolved source</span>
             <strong>{fires.metadata?.source ?? "pending"}</strong>
           </div>
+          <div className="source-card">
+            <span>County source</span>
+            <strong>{counties.metadata?.source ?? "pending"}</strong>
+          </div>
         </section>
 
         <section className="layer-panel" aria-label="Active layers">
@@ -380,12 +500,39 @@ function App() {
           </div>
           <div className="layer-row">
             <span className="layer-dot boundary" />
-            <span>Arizona bounds</span>
+            <span>Arizona counties</span>
           </div>
           <div className="layer-row muted">
             <span className="layer-dot muted" />
             <span>Risk grid pending</span>
           </div>
+        </section>
+
+        <section className="detail-panel" aria-label="County detail">
+          <div className="section-heading">
+            <Layers size={18} aria-hidden="true" />
+            <h2>County Selection</h2>
+          </div>
+          {selectedCounty ? (
+            <div className="detail-stack">
+              <div>
+                <p className="eyebrow">Selected boundary</p>
+                <h3>{countyName(selectedCounty)}</h3>
+              </div>
+              <dl>
+                <div>
+                  <dt>GEOID</dt>
+                  <dd>{selectedCounty.geoid ?? selectedCounty.GEOID ?? "n/a"}</dd>
+                </div>
+                <div>
+                  <dt>County FP</dt>
+                  <dd>{selectedCounty.countyfp ?? "n/a"}</dd>
+                </div>
+              </dl>
+            </div>
+          ) : (
+            <p className="empty-copy">No county selected</p>
+          )}
         </section>
 
         <section className="detail-panel" aria-label="Detection detail">

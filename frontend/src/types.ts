@@ -1,3 +1,5 @@
+import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson";
+
 export interface FireProperties {
   id: string;
   source: string;
@@ -35,5 +37,27 @@ export interface FireCollection {
     requested_data_source?: string;
     raw_count?: number;
     filters: Record<string, string | number | null>;
+  };
+}
+
+export interface CountyProperties {
+  [key: string]: string | number | undefined;
+  geoid?: string;
+  GEOID?: string;
+  name?: string;
+  NAME?: string;
+  statefp?: string;
+  countyfp?: string;
+  aland?: number;
+  awater?: number;
+}
+
+export type CountyFeature = Feature<Polygon | MultiPolygon, CountyProperties>;
+
+export interface CountyCollection extends FeatureCollection<Polygon | MultiPolygon, CountyProperties> {
+  metadata?: {
+    count: number;
+    source: string;
+    requested_data_source?: string;
   };
 }

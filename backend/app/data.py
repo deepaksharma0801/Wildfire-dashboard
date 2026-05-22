@@ -9,6 +9,7 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_FIRE_DATA_PATH = PROJECT_ROOT / "data" / "sample" / "firms_arizona_sample.geojson"
 LIVE_FIRE_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "firms_arizona_latest.geojson"
+SAMPLE_COUNTY_DATA_PATH = PROJECT_ROOT / "data" / "sample" / "arizona_counties_sample.geojson"
 
 FeatureCollection = dict[str, Any]
 BBox = tuple[float, float, float, float]
@@ -45,6 +46,11 @@ def load_fire_collection(data_source: DataSource = "auto") -> tuple[FeatureColle
     path, resolved_source = resolve_fire_data_path(data_source)
     with path.open("r", encoding="utf-8") as file:
         return json.load(file), resolved_source
+
+
+def load_county_collection() -> tuple[FeatureCollection, str]:
+    with SAMPLE_COUNTY_DATA_PATH.open("r", encoding="utf-8") as file:
+        return json.load(file), "sample_simplified_arizona_counties"
 
 
 def parse_bbox(value: str | None) -> BBox | None:

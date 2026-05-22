@@ -85,3 +85,44 @@ Useful API examples:
 curl "http://127.0.0.1:8000/api/fires?data_source=sample"
 curl "http://127.0.0.1:8000/api/fires?data_source=live&min_confidence=60"
 ```
+
+## Phase 3 PostGIS + Boundaries
+
+Phase 3 adds PostgreSQL/PostGIS, database loading, and Arizona county boundaries.
+
+Start PostGIS:
+
+```bash
+docker compose up -d postgis
+```
+
+Optional but recommended: download official Arizona county boundaries from Census TIGERweb:
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/ingest_counties.py
+```
+
+Load fires and counties into PostGIS:
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/load_postgis.py
+```
+
+Serve database-backed layers:
+
+```bash
+FIRE_DATA_SOURCE=db BOUNDARY_DATA_SOURCE=db uvicorn app.main:app --reload
+```
+
+Or choose `PostGIS` in the app's data-source dropdown.
+
+Useful API examples:
+
+```bash
+curl "http://127.0.0.1:8000/api/fires?data_source=db"
+curl "http://127.0.0.1:8000/api/counties?data_source=db"
+```

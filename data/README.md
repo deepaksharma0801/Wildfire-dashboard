@@ -17,3 +17,13 @@ FIRMS_MAP_KEY=your_key python scripts/ingest_firms.py --day-range 3
 ```
 
 That command writes raw CSV files to `data/raw/firms/` and normalized GeoJSON to `data/processed/firms_arizona_latest.geojson`.
+
+Phase 3 adds Census TIGERweb county boundary ingestion:
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/ingest_counties.py
+```
+
+That command writes official Arizona county GeoJSON to `data/processed/arizona_counties.geojson`.
