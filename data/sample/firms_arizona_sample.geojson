@@ -1,0 +1,182 @@
+{
+  "type": "FeatureCollection",
+  "name": "firms_arizona_sample",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-111.6513, 35.1983] },
+      "properties": {
+        "id": "az-sample-001",
+        "source": "sample_firms_viirs",
+        "state": "AZ",
+        "county": "Coconino",
+        "area_label": "Flagstaff north",
+        "latitude": 35.1983,
+        "longitude": -111.6513,
+        "confidence": 92,
+        "brightness_kelvin": 333.8,
+        "satellite": "NOAA-20",
+        "instrument": "VIIRS",
+        "acq_date": "2026-05-20",
+        "acq_time": "1912",
+        "acq_datetime": "2026-05-20T19:12:00Z",
+        "frp_mw": 18.4,
+        "sample": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-111.3289, 34.2439] },
+      "properties": {
+        "id": "az-sample-002",
+        "source": "sample_firms_viirs",
+        "state": "AZ",
+        "county": "Gila",
+        "area_label": "Payson east",
+        "latitude": 34.2439,
+        "longitude": -111.3289,
+        "confidence": 78,
+        "brightness_kelvin": 322.2,
+        "satellite": "Suomi-NPP",
+        "instrument": "VIIRS",
+        "acq_date": "2026-05-19",
+        "acq_time": "2036",
+        "acq_datetime": "2026-05-19T20:36:00Z",
+        "frp_mw": 9.7,
+        "sample": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-110.7862, 33.3942] },
+      "properties": {
+        "id": "az-sample-003",
+        "source": "sample_firms_modis",
+        "state": "AZ",
+        "county": "Gila",
+        "area_label": "Globe foothills",
+        "latitude": 33.3942,
+        "longitude": -110.7862,
+        "confidence": 88,
+        "brightness_kelvin": 329.4,
+        "satellite": "Terra",
+        "instrument": "MODIS",
+        "acq_date": "2026-05-18",
+        "acq_time": "1854",
+        "acq_datetime": "2026-05-18T18:54:00Z",
+        "frp_mw": 15.1,
+        "sample": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-110.9265, 32.2217] },
+      "properties": {
+        "id": "az-sample-004",
+        "source": "sample_firms_viirs",
+        "state": "AZ",
+        "county": "Pima",
+        "area_label": "Tucson east",
+        "latitude": 32.2217,
+        "longitude": -110.9265,
+        "confidence": 66,
+        "brightness_kelvin": 315.7,
+        "satellite": "NOAA-21",
+        "instrument": "VIIRS",
+        "acq_date": "2026-05-17",
+        "acq_time": "1948",
+        "acq_datetime": "2026-05-17T19:48:00Z",
+        "frp_mw": 6.8,
+        "sample": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-112.4685, 34.5400] },
+      "properties": {
+        "id": "az-sample-005",
+        "source": "sample_firms_viirs",
+        "state": "AZ",
+        "county": "Yavapai",
+        "area_label": "Prescott basin",
+        "latitude": 34.5400,
+        "longitude": -112.4685,
+        "confidence": 94,
+        "brightness_kelvin": 338.1,
+        "satellite": "NOAA-20",
+        "instrument": "VIIRS",
+        "acq_date": "2026-05-16",
+        "acq_time": "2018",
+        "acq_datetime": "2026-05-16T20:18:00Z",
+        "frp_mw": 22.6,
+        "sample": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-109.8937, 34.2542] },
+      "properties": {
+        "id": "az-sample-006",
+        "source": "sample_firms_viirs",
+        "state": "AZ",
+        "county": "Navajo",
+        "area_label": "White Mountains west",
+        "latitude": 34.2542,
+        "longitude": -109.8937,
+        "confidence": 81,
+        "brightness_kelvin": 325.9,
+        "satellite": "Suomi-NPP",
+        "instrument": "VIIRS",
+        "acq_date": "2026-05-15",
+        "acq_time": "1906",
+        "acq_datetime": "2026-05-15T19:06:00Z",
+        "frp_mw": 12.2,
+        "sample": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-113.9810, 35.1894] },
+      "properties": {
+        "id": "az-sample-007",
+        "source": "sample_firms_modis",
+        "state": "AZ",
+        "county": "Mohave",
+        "area_label": "Kingman foothills",
+        "latitude": 35.1894,
+        "longitude": -113.9810,
+        "confidence": 73,
+        "brightness_kelvin": 319.6,
+        "satellite": "Aqua",
+        "instrument": "MODIS",
+        "acq_date": "2026-05-14",
+        "acq_time": "2112",
+        "acq_datetime": "2026-05-14T21:12:00Z",
+        "frp_mw": 8.4,
+        "sample": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-112.0740, 33.4484] },
+      "properties": {
+        "id": "az-sample-008",
+        "source": "sample_firms_viirs",
+        "state": "AZ",
+        "county": "Maricopa",
+        "area_label": "Phoenix metro edge",
+        "latitude": 33.4484,
+        "longitude": -112.0740,
+        "confidence": 58,
+        "brightness_kelvin": 310.4,
+        "satellite": "NOAA-21",
+        "instrument": "VIIRS",
+        "acq_date": "2026-05-13",
+        "acq_time": "2024",
+        "acq_datetime": "2026-05-13T20:24:00Z",
+        "frp_mw": 4.9,
+        "sample": true
+      }
+    }
+  ]
+}

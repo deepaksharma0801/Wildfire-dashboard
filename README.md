@@ -28,3 +28,34 @@ Build a map-first decision-support system that combines:
 ## Project Scope
 
 See [docs/PROJECT_SCOPE.md](docs/PROJECT_SCOPE.md) for the detailed product, data, model, and implementation plan.
+
+## Phase 1 Local Demo
+
+The first executable slice uses a FastAPI backend, a React/Vite frontend, MapLibre GL, and a small FIRMS-like Arizona sample dataset.
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+The API runs at `http://127.0.0.1:8000`.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The app runs at `http://127.0.0.1:5173`.
+
+### Phase 1 Endpoints
+
+- `GET /health`
+- `GET /api/fires?start_date=&end_date=&bbox=&min_confidence=`
