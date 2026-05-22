@@ -15,4 +15,5 @@ dist/
 # Local data/runtime artifacts
 data/raw/
 data/processed/
+data/cache/
 *.log

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "prior-mogollon-rim",
+    "label": "Mogollon Rim fire history proxy",
+    "latitude": 34.35,
+    "longitude": -111.25,
+    "weight": 0.95
+  },
+  {
+    "id": "prior-coconino",
+    "label": "Coconino plateau fire history proxy",
+    "latitude": 35.24,
+    "longitude": -111.71,
+    "weight": 0.9
+  },
+  {
+    "id": "prior-yavapai",
+    "label": "Yavapai chaparral fire history proxy",
+    "latitude": 34.62,
+    "longitude": -112.43,
+    "weight": 0.82
+  },
+  {
+    "id": "prior-gila",
+    "label": "Gila highlands fire history proxy",
+    "latitude": 33.85,
+    "longitude": -110.85,
+    "weight": 0.86
+  },
+  {
+    "id": "prior-pinal-pima",
+    "label": "Pinal and northern Pima fire history proxy",
+    "latitude": 32.82,
+    "longitude": -111.02,
+    "weight": 0.62
+  },
+  {
+    "id": "prior-mohave",
+    "label": "Mohave transition-zone fire history proxy",
+    "latitude": 35.7,
+    "longitude": -113.75,
+    "weight": 0.58
+  },
+  {
+    "id": "prior-white-mountains",
+    "label": "White Mountains fire history proxy",
+    "latitude": 34.05,
+    "longitude": -109.75,
+    "weight": 0.84
+  },
+  {
+    "id": "prior-sky-islands",
+    "label": "Southeast Arizona sky islands fire history proxy",
+    "latitude": 31.95,
+    "longitude": -110.35,
+    "weight": 0.7
+  }
+]

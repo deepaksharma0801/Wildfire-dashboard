@@ -61,3 +61,146 @@ export interface CountyCollection extends FeatureCollection<Polygon | MultiPolyg
     requested_data_source?: string;
   };
 }
+
+export interface FireClusterProperties {
+  id: string;
+  detection_count: number;
+  time_start: string;
+  time_end: string;
+  avg_confidence: number;
+  max_frp_mw: number;
+  radius_km: number;
+  counties?: string[];
+  detection_ids?: string[];
+  source: string;
+}
+
+export interface FireClusterFeature {
+  type: "Feature";
+  geometry: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  properties: FireClusterProperties;
+}
+
+export interface FireClusterCollection {
+  type: "FeatureCollection";
+  features: FireClusterFeature[];
+  metadata?: {
+    count: number;
+    source: string;
+    requested_data_source?: string;
+    cluster_method?: string;
+    radius_km?: number;
+  };
+}
+
+export interface IncidentSummary {
+  id: string;
+  source: string;
+  center: {
+    latitude: number;
+    longitude: number;
+  };
+  radius_km: number;
+  detection_count: number;
+  time_start: string;
+  time_end: string;
+  avg_confidence: number;
+  max_frp_mw: number;
+  affected_counties: Array<{
+    geoid?: string;
+    name: string;
+    population?: number;
+    households?: number;
+    median_household_income?: number;
+    estimated_population?: number;
+    estimated_households?: number;
+    overlap_ratio?: number;
+    source?: string;
+  }>;
+  estimated_population_exposed: number;
+  estimated_households_exposed: number;
+  weather?: {
+    source: string;
+    unavailable?: boolean;
+    message?: string;
+    generated_at?: string;
+    current_period?: {
+      name?: string;
+      start_time?: string;
+      temperature?: number;
+      temperature_unit?: string;
+      wind_speed?: string;
+      wind_direction?: string;
+      short_forecast?: string;
+    } | null;
+    next_12h?: {
+      max_temperature?: number | null;
+      min_temperature?: number | null;
+      max_wind_speed_mph?: number | null;
+      max_precip_probability?: number | null;
+    } | null;
+    operational_flags?: string[];
+  };
+  nearby_places: Array<{
+    id: string;
+    name: string;
+    county?: string;
+    population?: number;
+    latitude: number;
+    longitude: number;
+    distance_km: number;
+  }>;
+  data_caveats: string[];
+}
+
+export interface IncidentReport {
+  report_id: string;
+  mode: "template";
+  generated_at: string;
+  incident_id: string;
+  sections: {
+    situation: string;
+    exposure: string;
+    weather_concerns: string;
+    monitoring_priorities: string;
+    data_caveats: string;
+  };
+  grounding: {
+    input_source?: string;
+    used_fields: string[];
+    unsupported_claims_policy: string;
+  };
+}
+
+export interface RiskCellProperties {
+  id: string;
+  risk_score: number;
+  risk_class: "low" | "moderate" | "high" | "extreme";
+  recent_activity: number;
+  historical_prior: number;
+  intensity: number;
+  exposure_proxy: number;
+  nearby_detection_count: number;
+  horizon_hours: number;
+  model_version: string;
+}
+
+export type RiskCellFeature = Feature<Polygon, RiskCellProperties>;
+
+export interface RiskGridCollection extends FeatureCollection<Polygon, RiskCellProperties> {
+  metadata?: {
+    count: number;
+    source: string;
+    requested_data_source?: string;
+    model_version: string;
+    horizon_hours: number;
+    cell_size_deg: number;
+    input_detection_count: number;
+    historical_prior_source: string;
+    method: string;
+    limitations: string[];
+  };
+}

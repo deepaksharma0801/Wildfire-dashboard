@@ -46,3 +46,29 @@ CREATE TABLE IF NOT EXISTS az_counties (
 
 CREATE INDEX IF NOT EXISTS az_counties_geom_idx
     ON az_counties USING GIST (geom);
+
+CREATE TABLE IF NOT EXISTS county_exposure (
+    geoid TEXT PRIMARY KEY REFERENCES az_counties(geoid),
+    name TEXT NOT NULL,
+    statefp TEXT,
+    countyfp TEXT,
+    population INTEGER,
+    households INTEGER,
+    median_household_income INTEGER,
+    source TEXT,
+    properties JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS az_places (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    county TEXT,
+    population INTEGER,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    properties JSONB NOT NULL DEFAULT '{}'::jsonb,
+    geom geometry(Point, 4326) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS az_places_geom_idx
+    ON az_places USING GIST (geom);

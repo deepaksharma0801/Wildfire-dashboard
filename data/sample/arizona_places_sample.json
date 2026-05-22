@@ -1,0 +1,18 @@
+[
+  { "id": "place-phoenix", "name": "Phoenix", "county": "Maricopa", "population": 1650000, "latitude": 33.4484, "longitude": -112.0740 },
+  { "id": "place-tucson", "name": "Tucson", "county": "Pima", "population": 547000, "latitude": 32.2226, "longitude": -110.9747 },
+  { "id": "place-mesa", "name": "Mesa", "county": "Maricopa", "population": 512000, "latitude": 33.4152, "longitude": -111.8315 },
+  { "id": "place-flagstaff", "name": "Flagstaff", "county": "Coconino", "population": 77000, "latitude": 35.1983, "longitude": -111.6513 },
+  { "id": "place-prescott", "name": "Prescott", "county": "Yavapai", "population": 47000, "latitude": 34.5400, "longitude": -112.4685 },
+  { "id": "place-payson", "name": "Payson", "county": "Gila", "population": 16000, "latitude": 34.2309, "longitude": -111.3251 },
+  { "id": "place-globe", "name": "Globe", "county": "Gila", "population": 7300, "latitude": 33.3942, "longitude": -110.7865 },
+  { "id": "place-kingman", "name": "Kingman", "county": "Mohave", "population": 34000, "latitude": 35.1894, "longitude": -114.0530 },
+  { "id": "place-show-low", "name": "Show Low", "county": "Navajo", "population": 12000, "latitude": 34.2542, "longitude": -110.0298 },
+  { "id": "place-yuma", "name": "Yuma", "county": "Yuma", "population": 98000, "latitude": 32.6927, "longitude": -114.6277 },
+  { "id": "place-sierra-vista", "name": "Sierra Vista", "county": "Cochise", "population": 45000, "latitude": 31.5455, "longitude": -110.2773 },
+  { "id": "place-nogales", "name": "Nogales", "county": "Santa Cruz", "population": 20000, "latitude": 31.3404, "longitude": -110.9343 },
+  { "id": "place-casa-grande", "name": "Casa Grande", "county": "Pinal", "population": 58000, "latitude": 32.8795, "longitude": -111.7574 },
+  { "id": "place-sedona", "name": "Sedona", "county": "Yavapai", "population": 9700, "latitude": 34.8697, "longitude": -111.7609 },
+  { "id": "place-page", "name": "Page", "county": "Coconino", "population": 7300, "latitude": 36.9147, "longitude": -111.4558 },
+  { "id": "place-safford", "name": "Safford", "county": "Graham", "population": 10000, "latitude": 32.8339, "longitude": -109.7076 }
+]

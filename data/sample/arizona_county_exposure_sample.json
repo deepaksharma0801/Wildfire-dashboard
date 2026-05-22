@@ -1,0 +1,17 @@
+[
+  { "geoid": "04001", "name": "Apache County", "statefp": "04", "countyfp": "001", "population": 65700, "households": 22300, "median_household_income": 39500, "source": "sample_county_exposure" },
+  { "geoid": "04003", "name": "Cochise County", "statefp": "04", "countyfp": "003", "population": 125000, "households": 52000, "median_household_income": 59000, "source": "sample_county_exposure" },
+  { "geoid": "04005", "name": "Coconino County", "statefp": "04", "countyfp": "005", "population": 145000, "households": 52000, "median_household_income": 68000, "source": "sample_county_exposure" },
+  { "geoid": "04007", "name": "Gila County", "statefp": "04", "countyfp": "007", "population": 54000, "households": 23000, "median_household_income": 52000, "source": "sample_county_exposure" },
+  { "geoid": "04009", "name": "Graham County", "statefp": "04", "countyfp": "009", "population": 39000, "households": 12000, "median_household_income": 61000, "source": "sample_county_exposure" },
+  { "geoid": "04011", "name": "Greenlee County", "statefp": "04", "countyfp": "011", "population": 9500, "households": 3500, "median_household_income": 72000, "source": "sample_county_exposure" },
+  { "geoid": "04012", "name": "La Paz County", "statefp": "04", "countyfp": "012", "population": 17000, "households": 8000, "median_household_income": 46000, "source": "sample_county_exposure" },
+  { "geoid": "04013", "name": "Maricopa County", "statefp": "04", "countyfp": "013", "population": 4587000, "households": 1740000, "median_household_income": 82000, "source": "sample_county_exposure" },
+  { "geoid": "04015", "name": "Mohave County", "statefp": "04", "countyfp": "015", "population": 231000, "households": 98000, "median_household_income": 55000, "source": "sample_county_exposure" },
+  { "geoid": "04017", "name": "Navajo County", "statefp": "04", "countyfp": "017", "population": 108000, "households": 36000, "median_household_income": 47000, "source": "sample_county_exposure" },
+  { "geoid": "04019", "name": "Pima County", "statefp": "04", "countyfp": "019", "population": 1074000, "households": 440000, "median_household_income": 65000, "source": "sample_county_exposure" },
+  { "geoid": "04021", "name": "Pinal County", "statefp": "04", "countyfp": "021", "population": 484000, "households": 170000, "median_household_income": 76000, "source": "sample_county_exposure" },
+  { "geoid": "04023", "name": "Santa Cruz County", "statefp": "04", "countyfp": "023", "population": 48000, "households": 16000, "median_household_income": 53000, "source": "sample_county_exposure" },
+  { "geoid": "04025", "name": "Yavapai County", "statefp": "04", "countyfp": "025", "population": 250000, "households": 112000, "median_household_income": 63000, "source": "sample_county_exposure" },
+  { "geoid": "04027", "name": "Yuma County", "statefp": "04", "countyfp": "027", "population": 212000, "households": 72000, "median_household_income": 56000, "source": "sample_county_exposure" }
+]

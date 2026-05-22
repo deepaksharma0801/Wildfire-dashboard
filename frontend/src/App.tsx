@@ -14,9 +14,17 @@ import {
   CountyCollection,
   CountyFeature,
   CountyProperties,
+  FireClusterCollection,
+  FireClusterFeature,
+  FireClusterProperties,
   FireCollection,
   FireFeature,
-  FireProperties
+  FireProperties,
+  IncidentReport,
+  IncidentSummary,
+  RiskCellFeature,
+  RiskCellProperties,
+  RiskGridCollection
 } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -60,8 +68,22 @@ const emptyCountyCollection: CountyCollection = {
   features: []
 };
 
+const emptyClusterCollection: FireClusterCollection = {
+  type: "FeatureCollection",
+  features: []
+};
+
+const emptyRiskGrid: RiskGridCollection = {
+  type: "FeatureCollection",
+  features: []
+};
+
 function countyName(properties: CountyProperties) {
   return properties.name ?? properties.NAME ?? "Selected county";
+}
+
+function formatNumber(value: number | undefined) {
+  return typeof value === "number" ? value.toLocaleString() : "n/a";
 }
 
 function App() {
@@ -69,8 +91,16 @@ function App() {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [fires, setFires] = useState<FireCollection>(emptyCollection);
   const [counties, setCounties] = useState<CountyCollection>(emptyCountyCollection);
+  const [clusters, setClusters] = useState<FireClusterCollection>(emptyClusterCollection);
+  const [riskGrid, setRiskGrid] = useState<RiskGridCollection>(emptyRiskGrid);
   const [selectedFire, setSelectedFire] = useState<FireProperties | null>(null);
   const [selectedCounty, setSelectedCounty] = useState<CountyProperties | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<FireClusterProperties | null>(null);
+  const [selectedRiskCell, setSelectedRiskCell] = useState<RiskCellProperties | null>(null);
+  const [incidentSummary, setIncidentSummary] = useState<IncidentSummary | null>(null);
+  const [incidentReport, setIncidentReport] = useState<IncidentReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
   const [filters, setFilters] = useState(initialFilters);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,13 +115,18 @@ function App() {
       (max, feature) => Math.max(max, feature.properties.frp_mw),
       0
     );
+    const peakRisk = riskGrid.features.reduce(
+      (max, feature) => Math.max(max, feature.properties.risk_score),
+      0
+    );
 
     return {
       count,
       averageConfidence: count ? Math.round(confidenceTotal / count) : 0,
-      peakFrp: peakFrp.toFixed(1)
+      peakFrp: peakFrp.toFixed(1),
+      peakRisk: peakRisk.toFixed(0)
     };
-  }, [fires]);
+  }, [fires, riskGrid]);
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) {
@@ -164,6 +199,89 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController();
+
+    async function fetchClusters() {
+      const params = new URLSearchParams({
+        bbox: ARIZONA_BBOX,
+        min_confidence: String(filters.minConfidence),
+        data_source: filters.dataSource,
+        radius_km: "25"
+      });
+
+      if (filters.startDate) {
+        params.set("start_date", filters.startDate);
+      }
+      if (filters.endDate) {
+        params.set("end_date", filters.endDate);
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/fires/clusters?${params}`, {
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(`Cluster API returned ${response.status}`);
+        }
+
+        const payload = (await response.json()) as FireClusterCollection;
+        setClusters(payload);
+      } catch (requestError) {
+        if ((requestError as Error).name !== "AbortError") {
+          setClusters(emptyClusterCollection);
+        }
+      }
+    }
+
+    fetchClusters();
+
+    return () => controller.abort();
+  }, [filters]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchRiskGrid() {
+      const params = new URLSearchParams({
+        bbox: ARIZONA_BBOX,
+        min_confidence: String(filters.minConfidence),
+        data_source: filters.dataSource,
+        horizon_hours: "72",
+        cell_size_deg: "0.5"
+      });
+
+      if (filters.startDate) {
+        params.set("start_date", filters.startDate);
+      }
+      if (filters.endDate) {
+        params.set("end_date", filters.endDate);
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/risk/grid?${params}`, {
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(`Risk API returned ${response.status}`);
+        }
+
+        setRiskGrid((await response.json()) as RiskGridCollection);
+      } catch (requestError) {
+        if ((requestError as Error).name !== "AbortError") {
+          setRiskGrid(emptyRiskGrid);
+          setSelectedRiskCell(null);
+        }
+      }
+    }
+
+    fetchRiskGrid();
+
+    return () => controller.abort();
+  }, [filters]);
+
+  useEffect(() => {
+    const controller = new AbortController();
     const countyDataSource = filters.dataSource === "db" ? "db" : "auto";
 
     async function fetchCounties() {
@@ -192,9 +310,269 @@ function App() {
 
   useEffect(() => {
     if (selectedFire && !fires.features.some((feature) => feature.properties.id === selectedFire.id)) {
-      setSelectedFire(null);
-    }
+        setSelectedFire(null);
+      }
   }, [fires, selectedFire]);
+
+  useEffect(() => {
+    if (
+      selectedRiskCell &&
+      !riskGrid.features.some((feature) => feature.properties.id === selectedRiskCell.id)
+    ) {
+      setSelectedRiskCell(null);
+    }
+  }, [riskGrid, selectedRiskCell]);
+
+  useEffect(() => {
+    if (
+      selectedCluster &&
+      !clusters.features.some((feature) => feature.properties.id === selectedCluster.id)
+    ) {
+      setSelectedCluster(null);
+      setIncidentSummary(null);
+      setIncidentReport(null);
+    }
+  }, [clusters, selectedCluster]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    if (!selectedCluster) {
+      return () => controller.abort();
+    }
+    const cluster = selectedCluster;
+
+    async function fetchIncidentSummary() {
+      const params = new URLSearchParams({
+        bbox: ARIZONA_BBOX,
+        min_confidence: String(filters.minConfidence),
+        data_source: filters.dataSource,
+        radius_km: String(cluster.radius_km ?? 25)
+      });
+
+      if (filters.startDate) {
+        params.set("start_date", filters.startDate);
+      }
+      if (filters.endDate) {
+        params.set("end_date", filters.endDate);
+      }
+
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/incidents/${cluster.id}/summary?${params}`,
+          { signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Incident API returned ${response.status}`);
+        }
+
+        setIncidentSummary((await response.json()) as IncidentSummary);
+        setIncidentReport(null);
+        setReportError(null);
+      } catch (requestError) {
+        if ((requestError as Error).name !== "AbortError") {
+          setIncidentSummary(null);
+          setIncidentReport(null);
+        }
+      }
+    }
+
+    fetchIncidentSummary();
+
+    return () => controller.abort();
+  }, [filters, selectedCluster]);
+
+  async function generateIncidentReport() {
+    if (!incidentSummary) {
+      return;
+    }
+
+    setReportLoading(true);
+    setReportError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/reports/incident`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ incident_summary: incidentSummary, mode: "template" })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Report API returned ${response.status}`);
+      }
+
+      setIncidentReport((await response.json()) as IncidentReport);
+    } catch (requestError) {
+      setReportError((requestError as Error).message);
+    } finally {
+      setReportLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    const syncRiskLayer = () => {
+      const existingSource = map.getSource("risk-grid") as GeoJSONSource | undefined;
+
+      if (existingSource) {
+        existingSource.setData(riskGrid);
+        return;
+      }
+
+      map.addSource("risk-grid", {
+        type: "geojson",
+        data: riskGrid
+      });
+
+      map.addLayer({
+        id: "risk-grid-fill",
+        type: "fill",
+        source: "risk-grid",
+        paint: {
+          "fill-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "risk_score"],
+            0,
+            "#f1f5f9",
+            30,
+            "#facc15",
+            55,
+            "#f97316",
+            75,
+            "#dc2626"
+          ],
+          "fill-opacity": [
+            "interpolate",
+            ["linear"],
+            ["get", "risk_score"],
+            0,
+            0.04,
+            30,
+            0.18,
+            75,
+            0.34
+          ]
+        }
+      }, map.getLayer("county-fill") ? "county-fill" : undefined);
+
+      map.addLayer({
+        id: "risk-grid-line",
+        type: "line",
+        source: "risk-grid",
+        paint: {
+          "line-color": "#7c2d12",
+          "line-width": 0.4,
+          "line-opacity": 0.2
+        }
+      }, map.getLayer("county-fill") ? "county-fill" : undefined);
+
+      map.on("click", "risk-grid-fill", (event: MapLayerMouseEvent) => {
+        const feature = event.features?.[0] as unknown as RiskCellFeature | undefined;
+        if (!feature) {
+          return;
+        }
+        setSelectedRiskCell(feature.properties);
+      });
+
+      map.on("mouseenter", "risk-grid-fill", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+
+      map.on("mouseleave", "risk-grid-fill", () => {
+        map.getCanvas().style.cursor = "";
+      });
+    };
+
+    if (map.isStyleLoaded()) {
+      syncRiskLayer();
+    } else {
+      map.once("load", syncRiskLayer);
+    }
+  }, [riskGrid]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    const syncClusterLayer = () => {
+      const existingSource = map.getSource("clusters") as GeoJSONSource | undefined;
+
+      if (existingSource) {
+        existingSource.setData(clusters);
+        return;
+      }
+
+      map.addSource("clusters", {
+        type: "geojson",
+        data: clusters
+      });
+
+      map.addLayer({
+        id: "cluster-rings",
+        type: "circle",
+        source: "clusters",
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["get", "detection_count"], 1, 16, 8, 34],
+          "circle-color": "#2563eb",
+          "circle-opacity": 0.13,
+          "circle-stroke-color": "#1d4ed8",
+          "circle-stroke-opacity": 0.45,
+          "circle-stroke-width": 1.2
+        }
+      }, map.getLayer("fire-halos") ? "fire-halos" : undefined);
+
+      map.addLayer({
+        id: "cluster-centers",
+        type: "circle",
+        source: "clusters",
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["get", "detection_count"], 1, 5, 8, 11],
+          "circle-color": "#1d4ed8",
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 1.5,
+          "circle-opacity": 0.88
+        }
+      });
+
+      map.on("click", "cluster-centers", (event: MapLayerMouseEvent) => {
+        const feature = event.features?.[0] as unknown as FireClusterFeature | undefined;
+        if (!feature) {
+          return;
+        }
+
+                setSelectedCluster(feature.properties);
+                setIncidentSummary(null);
+                setIncidentReport(null);
+                setReportError(null);
+                map.flyTo({
+          center: feature.geometry.coordinates,
+          zoom: Math.max(map.getZoom(), 7),
+          speed: 0.8
+        });
+      });
+
+      map.on("mouseenter", "cluster-centers", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+
+      map.on("mouseleave", "cluster-centers", () => {
+        map.getCanvas().style.cursor = "";
+      });
+    };
+
+    if (map.isStyleLoaded()) {
+      syncClusterLayer();
+    } else {
+      map.once("load", syncClusterLayer);
+    }
+  }, [clusters]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -403,6 +781,14 @@ function App() {
             <span>Peak FRP</span>
             <strong>{stats.peakFrp}</strong>
           </div>
+          <div className="metric-tile">
+            <span>Clusters</span>
+            <strong>{clusters.features.length}</strong>
+          </div>
+          <div className="metric-tile">
+            <span>Peak risk</span>
+            <strong>{stats.peakRisk}</strong>
+          </div>
         </section>
 
         <section className="control-panel" aria-label="Fire filters">
@@ -487,6 +873,14 @@ function App() {
             <span>County source</span>
             <strong>{counties.metadata?.source ?? "pending"}</strong>
           </div>
+          <div className="source-card">
+            <span>Cluster method</span>
+            <strong>{clusters.metadata?.cluster_method ?? "pending"}</strong>
+          </div>
+          <div className="source-card">
+            <span>Risk model</span>
+            <strong>{riskGrid.metadata?.model_version ?? "pending"}</strong>
+          </div>
         </section>
 
         <section className="layer-panel" aria-label="Active layers">
@@ -499,13 +893,172 @@ function App() {
             <span>Fire detections</span>
           </div>
           <div className="layer-row">
+            <span className="layer-dot cluster" />
+            <span>Incident clusters</span>
+          </div>
+          <div className="layer-row">
             <span className="layer-dot boundary" />
             <span>Arizona counties</span>
           </div>
-          <div className="layer-row muted">
-            <span className="layer-dot muted" />
-            <span>Risk grid pending</span>
+          <div className="layer-row">
+            <span className="layer-dot risk" />
+            <span>Risk grid</span>
           </div>
+        </section>
+
+        <section className="detail-panel" aria-label="Risk grid detail">
+          <div className="section-heading">
+            <SlidersHorizontal size={18} aria-hidden="true" />
+            <h2>Risk Layer</h2>
+          </div>
+          {selectedRiskCell ? (
+            <div className="detail-stack">
+              <div>
+                <p className="eyebrow">{selectedRiskCell.model_version}</p>
+                <h3>{selectedRiskCell.risk_class} risk</h3>
+              </div>
+              <dl>
+                <div>
+                  <dt>Score</dt>
+                  <dd>{selectedRiskCell.risk_score}/100</dd>
+                </div>
+                <div>
+                  <dt>Recent activity</dt>
+                  <dd>{Math.round(selectedRiskCell.recent_activity * 100)}%</dd>
+                </div>
+                <div>
+                  <dt>Historical prior</dt>
+                  <dd>{Math.round(selectedRiskCell.historical_prior * 100)}%</dd>
+                </div>
+                <div>
+                  <dt>Intensity</dt>
+                  <dd>{Math.round(selectedRiskCell.intensity * 100)}%</dd>
+                </div>
+                <div>
+                  <dt>Nearby detections</dt>
+                  <dd>{selectedRiskCell.nearby_detection_count}</dd>
+                </div>
+              </dl>
+            </div>
+          ) : (
+            <div className="risk-legend">
+              <p className="empty-copy">Click a grid cell to inspect the baseline score</p>
+              <div><span className="legend-swatch low" /> Low</div>
+              <div><span className="legend-swatch moderate" /> Moderate</div>
+              <div><span className="legend-swatch high" /> High</div>
+              <div><span className="legend-swatch extreme" /> Extreme</div>
+            </div>
+          )}
+        </section>
+
+        <section className="detail-panel" aria-label="Incident summary">
+          <div className="section-heading">
+            <Flame size={18} aria-hidden="true" />
+            <h2>Incident Summary</h2>
+          </div>
+          {selectedCluster ? (
+            <div className="detail-stack">
+              <div>
+                <p className="eyebrow">{selectedCluster.source}</p>
+                <h3>{selectedCluster.detection_count} detections</h3>
+              </div>
+              <dl>
+                <div>
+                  <dt>Time span</dt>
+                  <dd>{selectedCluster.time_start.slice(0, 10)} to {selectedCluster.time_end.slice(0, 10)}</dd>
+                </div>
+                <div>
+                  <dt>Avg confidence</dt>
+                  <dd>{selectedCluster.avg_confidence}%</dd>
+                </div>
+                <div>
+                  <dt>Max FRP</dt>
+                  <dd>{selectedCluster.max_frp_mw} MW</dd>
+                </div>
+                <div>
+                  <dt>Est. population</dt>
+                  <dd>{formatNumber(incidentSummary?.estimated_population_exposed)}</dd>
+                </div>
+                <div>
+                  <dt>Est. households</dt>
+                  <dd>{formatNumber(incidentSummary?.estimated_households_exposed)}</dd>
+                </div>
+              </dl>
+              {incidentSummary?.weather ? (
+                <div className="weather-card">
+                  <span>Weather context</span>
+                  {incidentSummary.weather.unavailable ? (
+                    <p>{incidentSummary.weather.message ?? "Weather unavailable"}</p>
+                  ) : (
+                    <>
+                      <strong>
+                        {incidentSummary.weather.current_period?.temperature ?? "n/a"}
+                        {incidentSummary.weather.current_period?.temperature_unit ?? ""} ·{" "}
+                        {incidentSummary.weather.current_period?.wind_speed ?? "wind n/a"}{" "}
+                        {incidentSummary.weather.current_period?.wind_direction ?? ""}
+                      </strong>
+                      <p>{incidentSummary.weather.current_period?.short_forecast ?? "Forecast pending"}</p>
+                      <ul>
+                        {(incidentSummary.weather.operational_flags ?? []).map((flag) => (
+                          <li key={flag}>{flag}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              ) : null}
+              {incidentSummary?.nearby_places?.length ? (
+                <div className="place-list">
+                  <span>Nearby places</span>
+                  {incidentSummary.nearby_places.slice(0, 3).map((place) => (
+                    <div key={place.id} className="place-row">
+                      <strong>{place.name}</strong>
+                      <em>{place.distance_km} km</em>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-copy">Loading exposure summary</p>
+              )}
+              <button
+                className="icon-button"
+                type="button"
+                onClick={generateIncidentReport}
+                disabled={!incidentSummary || reportLoading}
+              >
+                <SlidersHorizontal size={16} aria-hidden="true" />
+                {reportLoading ? "Generating report" : "Generate report"}
+              </button>
+            </div>
+          ) : (
+            <p className="empty-copy">Click a blue incident cluster</p>
+          )}
+        </section>
+
+        <section className="detail-panel" aria-label="AI incident report">
+          <div className="section-heading">
+            <Satellite size={18} aria-hidden="true" />
+            <h2>AI Report</h2>
+          </div>
+          {incidentReport ? (
+            <div className="report-stack">
+              <p className="eyebrow">{incidentReport.mode} · grounded</p>
+              {Object.entries(incidentReport.sections).map(([title, body]) => (
+                <article key={title} className="report-section">
+                  <h3>{title.replace("_", " ")}</h3>
+                  <p>{body}</p>
+                </article>
+              ))}
+              <div className="source-card">
+                <span>Grounding policy</span>
+                <strong>{incidentReport.grounding.unsupported_claims_policy}</strong>
+              </div>
+            </div>
+          ) : (
+            <p className="empty-copy">
+              {reportError ?? "Generate a report after selecting an incident cluster"}
+            </p>
+          )}
         </section>
 
         <section className="detail-panel" aria-label="County detail">

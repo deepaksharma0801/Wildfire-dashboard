@@ -112,6 +112,15 @@ source .venv/bin/activate
 python scripts/load_postgis.py
 ```
 
+Optional: download official ACS county exposure metrics before loading PostGIS:
+
+```bash
+cd backend
+source .venv/bin/activate
+CENSUS_API_KEY=your_key python scripts/ingest_acs.py
+python scripts/load_postgis.py
+```
+
 Serve database-backed layers:
 
 ```bash
@@ -126,3 +135,98 @@ Useful API examples:
 curl "http://127.0.0.1:8000/api/fires?data_source=db"
 curl "http://127.0.0.1:8000/api/counties?data_source=db"
 ```
+
+## Phase 4 Exposure Intelligence
+
+Phase 4 adds incident clustering and exposure summaries.
+
+New endpoints:
+
+- `GET /api/fires/clusters?start_date=&end_date=&bbox=&min_confidence=&radius_km=&data_source=`
+- `GET /api/incidents/{incident_id}/summary?radius_km=&data_source=`
+
+The incident summary includes:
+
+- detection count and time span
+- average confidence and peak FRP
+- area-weighted county population and household exposure
+- nearest Arizona places
+- data caveats for FIRMS and exposure precision
+
+In the app, click a blue incident cluster to populate the Incident Summary panel.
+
+## Phase 5 Weather Context
+
+Phase 5 adds NOAA/NWS forecast context to incident summaries. The NWS API does not require an API key, but it does require a User-Agent. You can optionally set one:
+
+```bash
+export NWS_USER_AGENT="wildfire-geoai/0.1 (you@example.com)"
+```
+
+New endpoint:
+
+- `GET /api/weather/point?latitude=&longitude=`
+
+Incident summaries now include:
+
+- current forecast period
+- temperature
+- wind speed and direction
+- short forecast
+- 12-hour max temperature, wind, and precipitation probability
+- operational weather flags
+
+Weather responses are cached under `data/cache/weather/` for 30 minutes.
+
+## Phase 6 Grounded Incident Reports
+
+Phase 6 adds a report endpoint that generates structured incident reports from computed metrics only. The first implementation uses a deterministic template mode, so no LLM API key is required.
+
+New endpoint:
+
+- `POST /api/reports/incident`
+
+Request body:
+
+```json
+{
+  "mode": "template",
+  "incident_summary": {}
+}
+```
+
+The report includes:
+
+- situation
+- exposure
+- weather concerns
+- monitoring priorities
+- data caveats
+- grounding metadata showing which structured fields were used
+
+In the app, click a blue incident cluster, wait for the Incident Summary, then click **Generate report**.
+
+## Phase 7 Baseline Risk Grid
+
+Phase 7 adds the first 24-72 hour risk surface. It is a transparent baseline layer for portfolio/demo use, not an operational wildfire forecast.
+
+New endpoint:
+
+- `GET /api/risk/grid?start_date=&end_date=&bbox=&min_confidence=&horizon_hours=&cell_size_deg=&data_source=`
+
+The current score combines:
+
+- recent FIRMS detection proximity and confidence
+- fire radiative power intensity proxy
+- sample Arizona historical fire priors
+- nearby population-place exposure proxy
+
+Useful API example:
+
+```bash
+curl "http://127.0.0.1:8000/api/risk/grid?data_source=sample&horizon_hours=72"
+```
+
+In the app, the risk grid appears as a yellow-orange-red overlay. Click a grid cell to inspect its score, recent activity, historical prior, intensity, and nearby detection count.
+
+No new API keys are required for Phase 7. Later iterations should replace the sample historical priors with MTBS-derived features and add weather, fuel, terrain, and evaluated train/test splits.
