@@ -20,6 +20,7 @@ from app.firms import (
     parse_bbox_value,
     write_json,
 )
+from app.regions import get_region
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RAW_DIR = PROJECT_ROOT / "data" / "raw" / "firms"
@@ -40,9 +41,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="FIRMS satellite product source.",
     )
     parser.add_argument(
+        "--region",
+        default="AZ",
+        help="Region code used when --bbox is omitted. One of AZ, CA, NV, NM, TX, CO, southwest.",
+    )
+    parser.add_argument(
         "--bbox",
-        default=bbox_to_api_value(ARIZONA_BBOX),
-        help="west,south,east,north bounding box. Defaults to Arizona.",
+        default=None,
+        help="west,south,east,north bounding box. Defaults to the selected region.",
     )
     parser.add_argument(
         "--day-range",
@@ -83,7 +89,12 @@ def main() -> int:
     if not args.map_key:
         parser.error("missing FIRMS MAP_KEY; pass --map-key or set FIRMS_MAP_KEY")
 
-    bbox = parse_bbox_value(args.bbox)
+    try:
+        region = get_region(args.region)
+    except ValueError as error:
+        parser.error(str(error))
+
+    bbox = parse_bbox_value(args.bbox) if args.bbox else region.bbox
     csv_text, url = download_firms_csv(
         map_key=args.map_key,
         source=args.source,
@@ -98,10 +109,12 @@ def main() -> int:
     raw_path.parent.mkdir(parents=True, exist_ok=True)
     raw_path.write_text(csv_text, encoding="utf-8")
 
-    collection = normalize_firms_csv(csv_text, source=args.source)
+    state = region.code if region.code != "southwest" else "SW"
+    collection = normalize_firms_csv(csv_text, source=args.source, state=state)
     collection["metadata"]["download_url"] = url.replace(args.map_key, "[MAP_KEY]")
     collection["metadata"]["raw_csv_path"] = str(raw_path)
     collection["metadata"]["bbox"] = bbox_to_api_value(bbox)
+    collection["metadata"]["region"] = region.code
     collection["metadata"]["day_range"] = args.day_range
     collection["metadata"]["date"] = args.date
 

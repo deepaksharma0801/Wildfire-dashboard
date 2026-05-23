@@ -190,6 +190,89 @@ export interface RiskCellProperties {
 
 export type RiskCellFeature = Feature<Polygon, RiskCellProperties>;
 
+export interface RegionConfig {
+  code: string;
+  label: string;
+  fips: string[];
+  bbox: [number, number, number, number];
+  center: {
+    longitude: number;
+    latitude: number;
+  };
+  zoom: number;
+}
+
+export interface RegionResponse {
+  regions: RegionConfig[];
+  default_region: string;
+}
+
+export interface H3RiskCellProperties extends RiskCellProperties {
+  h3_cell: string;
+  h3_resolution: number;
+  region: string;
+  region_label: string;
+  nearest_county: string;
+  driver_summary: string;
+}
+
+export type H3RiskCellFeature = Feature<Polygon, H3RiskCellProperties>;
+
+export interface H3RiskGridCollection extends FeatureCollection<Polygon, H3RiskCellProperties> {
+  metadata?: {
+    count: number;
+    source: string;
+    requested_data_source?: string;
+    region: string;
+    region_label: string;
+    h3_resolution: number;
+    model_version: string;
+    input_detection_count: number;
+    active_region_codes?: string[];
+    method: string;
+    top_counties: Array<{
+      county: string;
+      max_risk_score: number;
+      avg_risk_score: number;
+      cell_count: number;
+    }>;
+    limitations: string[];
+  };
+}
+
+export interface RiskScenarioResponse {
+  scenario: {
+    region: string;
+    h3_resolution: number;
+    horizon_hours: number;
+    temperature_delta_c: number;
+    drought_multiplier: number;
+    wind_multiplier: number;
+    model_version: string;
+  };
+  overlay: FeatureCollection<Polygon, H3RiskCellProperties & {
+    base_risk_score: number;
+    scenario_risk_score: number;
+    scenario_delta: number;
+    scenario_driver_summary: string;
+    simulation_model_version: string;
+  }>;
+  top_cells: Array<{
+    h3_cell: string;
+    risk_score: number;
+    risk_delta: number;
+    nearest_county?: string;
+    driver_summary: string;
+  }>;
+  top_counties: Array<{
+    county: string;
+    max_risk_score: number;
+    avg_risk_score: number;
+    cell_count: number;
+  }>;
+  caveats: string[];
+}
+
 export interface RiskGridCollection extends FeatureCollection<Polygon, RiskCellProperties> {
   metadata?: {
     count: number;
@@ -203,6 +286,72 @@ export interface RiskGridCollection extends FeatureCollection<Polygon, RiskCellP
     method: string;
     limitations: string[];
   };
+}
+
+export interface AzCountyRiskRanking {
+  rank: number;
+  county: string;
+  county_name: string;
+  geoid: string;
+  risk_score: number;
+  risk_class: "low" | "moderate" | "high" | "extreme";
+  rank_components: {
+    risk: number;
+    detections: number;
+    intensity: number;
+    exposure: number;
+    trend: number;
+  };
+  detection_count: number;
+  max_frp_mw: number;
+  avg_confidence: number;
+  population: number;
+  households: number;
+  max_risk_score: number;
+  avg_risk_score: number;
+  high_extreme_cell_count: number;
+  forecast_trend: "rising" | "stable" | "falling";
+  forecast_trend_counts: {
+    rising: number;
+    stable: number;
+    falling: number;
+  };
+  top_driver: string;
+  caveat: string;
+}
+
+export interface AzRiskIntelligence {
+  model_version: string;
+  region: "AZ";
+  horizon_hours: number;
+  summary: {
+    active_detection_count: number;
+    county_count: number;
+    high_extreme_cell_count: number;
+    rising_forecast_cell_count: number;
+    highest_risk_county: string | null;
+    highest_risk_score: number;
+    main_driver: string;
+  };
+  county_rankings: AzCountyRiskRanking[];
+  top_risk_cells: Array<{
+    id: string;
+    risk_score: number;
+    risk_class: string;
+    nearby_detection_count: number;
+    top_driver: string;
+    drivers: Record<string, number>;
+  }>;
+  driver_breakdown: Record<string, number>;
+  data_sources: {
+    fires: string;
+    counties: string;
+    risk_grid: string;
+    forecast: string;
+    exposure: string;
+    requested_data_source: string;
+  };
+  caveats: string[];
 }
 
 export interface ImageryProduct {
@@ -237,4 +386,92 @@ export interface ImageryProduct {
     method: string;
     limitations: string[];
   };
+}
+
+export interface RiskEvaluation {
+  model_version: string;
+  evaluation_id: string;
+  generated_at: string;
+  data_source: string;
+  cell_size_deg: number;
+  sample_size: number;
+  positive_proxy_count: number;
+  negative_proxy_count: number;
+  label_definition: string;
+  metrics: {
+    roc_auc: number | null;
+    classification: {
+      threshold: number;
+      confusion_matrix: {
+        true_positive: number;
+        false_positive: number;
+        true_negative: number;
+        false_negative: number;
+      };
+      precision: number;
+      recall: number;
+      specificity: number;
+      accuracy: number;
+      f1: number;
+    };
+    top_quartile_capture: {
+      bucket_fraction: number;
+      cell_count: number;
+      positive_proxy_cells_captured: number;
+      capture_rate: number;
+    };
+  };
+  feature_importance_proxy: Array<{
+    feature: string;
+    weight: number;
+  }>;
+  limitations: string[];
+  next_steps: string[];
+}
+
+export interface ForecastRiskCellProperties extends RiskCellProperties {
+  risk_score_now: number;
+  risk_score_forecast: number;
+  risk_delta: number;
+  trend: "falling" | "stable" | "rising";
+  risk_class_forecast: "low" | "moderate" | "high" | "extreme";
+  forecast_horizon_hours: 24 | 48 | 72;
+  forecast_model_version: string;
+  driver_summary: string;
+}
+
+export interface ForecastRiskGridCollection extends FeatureCollection<Polygon, ForecastRiskCellProperties> {
+  metadata?: {
+    count: number;
+    source: string;
+    requested_data_source?: string;
+    base_model_version?: string;
+    forecast_model_version: string;
+    horizon_hours: 24 | 48 | 72;
+    trend_counts: {
+      rising: number;
+      stable: number;
+      falling: number;
+    };
+    method: string;
+    limitations: string[];
+  };
+}
+
+export interface CopilotResponse {
+  query: string;
+  intent:
+    | "risk_near_population"
+    | "county_vulnerability"
+    | "recent_fire_clusters"
+    | "incident_summary"
+    | "help";
+  answer: string;
+  overlay: FeatureCollection;
+  metrics: Record<string, unknown>;
+  actions: Array<{
+    type: string;
+    label: string;
+  }>;
+  caveats: string[];
 }

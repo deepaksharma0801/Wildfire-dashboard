@@ -18,7 +18,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -172,6 +173,18 @@ select {
   border-radius: 6px;
 }
 
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 82px;
+  padding: 10px 12px;
+  color: #14201f;
+  background: #f8faf8;
+  border: 1px solid #c7d5cf;
+  border-radius: 6px;
+  line-height: 1.35;
+}
+
 input[type="range"] {
   width: 100%;
   accent-color: #b42318;
@@ -245,6 +258,91 @@ input[type="range"] {
   overflow-wrap: anywhere;
 }
 
+.arizona-focus-panel {
+  border-color: #f3c7a1;
+  background: #fffaf3;
+}
+
+.arizona-focus-panel.active {
+  border-color: #b42318;
+}
+
+.focus-summary {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.focus-summary p {
+  margin: 0;
+  color: #3f5750;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.focus-summary dl {
+  gap: 8px;
+}
+
+.focus-summary dl div {
+  padding-bottom: 6px;
+}
+
+.az-intelligence-panel {
+  border-color: #f3c7a1;
+}
+
+.az-intelligence-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.county-risk-list {
+  display: grid;
+  gap: 8px;
+}
+
+.county-risk-list > span {
+  color: #5f746d;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.county-risk-row {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 10px;
+  color: #172621;
+  text-align: left;
+  background: #fffaf3;
+  border: 1px solid #f3d2b5;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.county-risk-row:hover {
+  border-color: #b42318;
+}
+
+.county-risk-row strong {
+  font-size: 0.92rem;
+}
+
+.county-risk-row span {
+  color: #b42318;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.county-risk-row em {
+  color: #5f746d;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
 .layer-dot {
   width: 11px;
   height: 11px;
@@ -269,6 +367,26 @@ input[type="range"] {
 .layer-dot.risk {
   background: #f97316;
   box-shadow: 0 0 0 5px rgb(249 115 22 / 0.13);
+}
+
+.layer-dot.h3 {
+  background: #b91c1c;
+  box-shadow: 0 0 0 5px rgb(185 28 28 / 0.12);
+}
+
+.layer-dot.scenario {
+  background: #64748b;
+  box-shadow: 0 0 0 5px rgb(100 116 139 / 0.14);
+}
+
+.layer-dot.forecast {
+  background: #dc2626;
+  box-shadow: 0 0 0 5px rgb(220 38 38 / 0.12);
+}
+
+.layer-dot.copilot {
+  background: #7c3aed;
+  box-shadow: 0 0 0 5px rgb(124 58 237 / 0.12);
 }
 
 .layer-dot.burn {
@@ -378,6 +496,112 @@ dd {
   line-height: 1.4;
 }
 
+.copilot-panel {
+  border-color: #c4b5fd;
+}
+
+.copilot-form {
+  display: grid;
+  gap: 10px;
+}
+
+.example-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.example-chip-row button {
+  max-width: 100%;
+  padding: 7px 9px;
+  color: #4c1d95;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: left;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.copilot-answer {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 6px;
+}
+
+.copilot-answer p {
+  margin: 0;
+  color: #3f365f;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.copilot-answer strong {
+  color: #4c1d95;
+  font-size: 0.8rem;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.segmented-control button {
+  min-height: 34px;
+  color: #27433d;
+  font-weight: 800;
+  background: #f8faf8;
+  border: 1px solid #dbe5e0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.segmented-control button.selected {
+  color: #ffffff;
+  background: #b42318;
+  border-color: #b42318;
+}
+
+.forecast-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.forecast-list > span {
+  color: #5f746d;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.forecast-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e7eeeb;
+}
+
+.forecast-row strong {
+  color: #172621;
+}
+
+.forecast-row em {
+  color: #b42318;
+  font-style: normal;
+  font-weight: 800;
+  text-align: right;
+}
+
 .imagery-stack {
   display: grid;
   gap: 14px;
@@ -438,6 +662,47 @@ dd {
   line-height: 1;
   background: #7f1d1d;
   border-radius: 4px;
+}
+
+.diagnostics-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.feature-weight-list {
+  display: grid;
+  gap: 8px;
+}
+
+.feature-weight-list div {
+  display: grid;
+  gap: 4px;
+}
+
+.feature-weight-list span {
+  color: #5f746d;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.feature-weight-list strong {
+  display: block;
+  min-width: 38px;
+  max-width: 100%;
+  padding: 3px 6px;
+  color: #ffffff;
+  font-size: 0.74rem;
+  line-height: 1;
+  background: #183c35;
+  border-radius: 4px;
+}
+
+.diagnostic-note {
+  margin: 0;
+  color: #5f746d;
+  font-size: 0.84rem;
+  line-height: 1.4;
 }
 
 .risk-legend {

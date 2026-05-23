@@ -72,3 +72,56 @@ CREATE TABLE IF NOT EXISTS az_places (
 
 CREATE INDEX IF NOT EXISTS az_places_geom_idx
     ON az_places USING GIST (geom);
+
+CREATE TABLE IF NOT EXISTS regions (
+    code TEXT PRIMARY KEY,
+    label TEXT NOT NULL,
+    fips TEXT[] NOT NULL,
+    bbox DOUBLE PRECISION[] NOT NULL,
+    center_longitude DOUBLE PRECISION NOT NULL,
+    center_latitude DOUBLE PRECISION NOT NULL,
+    properties JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS region_counties (
+    geoid TEXT PRIMARY KEY,
+    region_code TEXT NOT NULL REFERENCES regions(code),
+    name TEXT NOT NULL,
+    statefp TEXT,
+    countyfp TEXT,
+    properties JSONB NOT NULL DEFAULT '{}'::jsonb,
+    geom geometry(MultiPolygon, 4326) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS region_counties_region_code_idx
+    ON region_counties (region_code);
+
+CREATE INDEX IF NOT EXISTS region_counties_statefp_idx
+    ON region_counties (statefp);
+
+CREATE INDEX IF NOT EXISTS region_counties_geom_idx
+    ON region_counties USING GIST (geom);
+
+CREATE TABLE IF NOT EXISTS h3_risk_cells (
+    h3_cell TEXT NOT NULL,
+    h3_resolution INTEGER NOT NULL,
+    region_code TEXT NOT NULL REFERENCES regions(code),
+    risk_score DOUBLE PRECISION NOT NULL,
+    risk_class TEXT NOT NULL,
+    properties JSONB NOT NULL DEFAULT '{}'::jsonb,
+    geom geometry(Polygon, 4326) NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (h3_cell, h3_resolution, region_code)
+);
+
+CREATE INDEX IF NOT EXISTS h3_risk_cells_region_code_idx
+    ON h3_risk_cells (region_code);
+
+CREATE INDEX IF NOT EXISTS h3_risk_cells_h3_cell_idx
+    ON h3_risk_cells (h3_cell);
+
+CREATE INDEX IF NOT EXISTS h3_risk_cells_h3_resolution_idx
+    ON h3_risk_cells (h3_resolution);
+
+CREATE INDEX IF NOT EXISTS h3_risk_cells_geom_idx
+    ON h3_risk_cells USING GIST (geom);

@@ -2,9 +2,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
+
+from app.regions import get_region
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "data" / "processed" / "arizona_counties.geojson"
@@ -13,9 +20,10 @@ TIGERWEB_COUNTIES_URL = (
 )
 
 
-def build_tigerweb_url() -> str:
+def build_tigerweb_url(state_fips: tuple[str, ...]) -> str:
+    state_filter = ",".join(f"'{fips}'" for fips in state_fips)
     params = {
-        "where": "STATE='04'",
+        "where": f"STATE IN ({state_filter})",
         "outFields": "STATE,COUNTY,GEOID,NAME,BASENAME,AREALAND,AREAWATER",
         "returnGeometry": "true",
         "f": "geojson",
@@ -26,12 +34,14 @@ def build_tigerweb_url() -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Download Arizona county boundaries from Census TIGERweb.")
+    parser = argparse.ArgumentParser(description="Download county boundaries from Census TIGERweb.")
+    parser.add_argument("--region", default="AZ", help="Region/state code: AZ, CA, NV, NM, TX, CO, or southwest.")
+    parser.add_argument("--state", default=None, help="Optional state code alias for --region.")
     parser.add_argument(
         "--output",
         default=DEFAULT_OUTPUT_PATH,
         type=Path,
-        help="GeoJSON output path for Arizona county boundaries.",
+        help="GeoJSON output path for county boundaries.",
     )
     parser.add_argument("--timeout", default=30, type=int, help="Download timeout in seconds.")
     return parser
@@ -40,7 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    url = build_tigerweb_url()
+    try:
+        region = get_region(args.state or args.region)
+    except ValueError as error:
+        parser.error(str(error))
+    url = build_tigerweb_url(region.fips)
     request = Request(url, headers={"User-Agent": "wildfire-geoai/0.1"})
 
     with urlopen(request, timeout=args.timeout) as response:
@@ -48,18 +62,19 @@ def main() -> int:
 
     features = payload.get("features", [])
     if not features:
-        raise RuntimeError("Census TIGERweb returned no Arizona county features")
+        raise RuntimeError(f"Census TIGERweb returned no county features for {region.code}")
 
     payload["metadata"] = {
         "source": "census_tigerweb_state_county",
         "download_url": url,
         "count": len(features),
+        "region": region.code,
     }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    print(f"Wrote Arizona county boundaries: {args.output}")
+    print(f"Wrote {region.label} county boundaries: {args.output}")
     print(f"County count: {len(features)}")
     return 0
 

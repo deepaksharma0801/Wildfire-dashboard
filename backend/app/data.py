@@ -8,6 +8,7 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_FIRE_DATA_PATH = PROJECT_ROOT / "data" / "sample" / "firms_arizona_sample.geojson"
+SAMPLE_SOUTHWEST_FIRE_DATA_PATH = PROJECT_ROOT / "data" / "sample" / "firms_southwest_sample.geojson"
 LIVE_FIRE_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "firms_arizona_latest.geojson"
 SAMPLE_COUNTY_DATA_PATH = PROJECT_ROOT / "data" / "sample" / "arizona_counties_sample.geojson"
 
@@ -25,21 +26,19 @@ def resolve_fire_data_path(data_source: DataSource = "auto") -> tuple[Path, str]
         raise ValueError("data_source must be one of auto,sample,live")
 
     if data_source == "sample":
-        return SAMPLE_FIRE_DATA_PATH, "sample_firms_like_arizona"
+        return SAMPLE_SOUTHWEST_FIRE_DATA_PATH, "sample_firms_like_southwest"
 
     if data_source == "live":
         if not LIVE_FIRE_DATA_PATH.exists():
-            raise DataSourceUnavailable(
-                "live FIRMS data is not available yet; run backend/scripts/ingest_firms.py first"
-            )
+            return SAMPLE_SOUTHWEST_FIRE_DATA_PATH, "sample_fallback_live_unavailable"
         return LIVE_FIRE_DATA_PATH, "nasa_firms_area_api"
 
     preferred_source = os.getenv("FIRE_DATA_SOURCE", "auto")
     if preferred_source == "sample":
-        return SAMPLE_FIRE_DATA_PATH, "sample_firms_like_arizona"
+        return SAMPLE_SOUTHWEST_FIRE_DATA_PATH, "sample_firms_like_southwest"
     if LIVE_FIRE_DATA_PATH.exists():
         return LIVE_FIRE_DATA_PATH, "nasa_firms_area_api"
-    return SAMPLE_FIRE_DATA_PATH, "sample_firms_like_arizona"
+    return SAMPLE_SOUTHWEST_FIRE_DATA_PATH, "sample_firms_like_southwest"
 
 
 def load_fire_collection(data_source: DataSource = "auto") -> tuple[FeatureCollection, str]:

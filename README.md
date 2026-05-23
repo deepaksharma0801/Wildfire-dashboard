@@ -15,19 +15,68 @@ Build a map-first decision-support system that combines:
 - LLM-generated incident reports grounded in geospatial metrics
 - An interactive React map for exploration and demo
 
-## Planned Stack
+## Implemented Stack
 
-- Frontend: React, Mapbox GL JS or Deck.gl
+- Frontend: React, Vite, MapLibre GL, Nginx for container serving
 - Backend: FastAPI
 - Spatial storage: PostgreSQL/PostGIS
-- Geospatial processing: GeoPandas, Rasterio, Shapely, PyProj
-- ML/CV: PyTorch, segmentation model such as U-Net or SegFormer
-- Pipelines: Python workers, scheduled ingestion jobs
-- Deployment: Docker, cloud-hosted API, database, and static frontend
+- Geospatial processing: GeoJSON, PostGIS spatial queries, Python scoring utilities
+- AI layer: grounded report generation from structured incident summaries
+- CV/imagery layer: Sentinel-2-style before/after burn scar demo
+- Deployment: Docker Compose with frontend, backend, and PostGIS services
 
-## Project Scope
+## Project Docs
 
-See [docs/PROJECT_SCOPE.md](docs/PROJECT_SCOPE.md) for the detailed product, data, model, and implementation plan.
+- [Project scope](docs/PROJECT_SCOPE.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Data card](docs/DATA_CARD.md)
+- [Model card](docs/MODEL_CARD.md)
+- [Demo script](docs/DEMO_SCRIPT.md)
+- [Deployment guide](docs/DEPLOYMENT.md)
+
+## Quick Start
+
+Run the full portfolio demo with Docker:
+
+```bash
+docker compose up --build
+```
+
+Open `http://127.0.0.1:8080`.
+
+For development, run the backend and frontend separately:
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://127.0.0.1:5173`.
+
+## Demo Flow
+
+1. View Arizona fire detections on the map.
+2. Click a fire point to inspect raw FIRMS-style metadata.
+3. Click a blue incident cluster to load exposure and weather context.
+4. Generate a grounded AI-style incident report.
+5. Click the risk grid to inspect model score components.
+6. Review Model Diagnostics to see proxy evaluation metrics.
+7. Ask the Spatial Copilot a supported geospatial question.
+8. Switch the forecast horizon between 24h, 48h, and 72h.
+9. Review the Satellite Analysis panel and burn scar mask.
+
+## Resume Bullet
+
+Built a full-stack GeoAI wildfire intelligence platform with React, MapLibre, FastAPI, PostGIS, NASA FIRMS ingestion, Census exposure analysis, NOAA weather context, grounded report generation, baseline spatial risk scoring, and satellite burn scar visualization.
 
 ## Phase 1 Local Demo
 
@@ -255,3 +304,101 @@ The app now includes a **Satellite Analysis** panel with:
 - severity mix bars
 
 No new API keys are required for this demo slice. The production version should connect this to Copernicus Sentinel-2 scenes, compute NDVI/NBR/dNBR from raster bands, and replace the sample mask with MTBS-derived or model-predicted burn polygons.
+
+## Phase 10 Risk Model Diagnostics
+
+Phase 10 adds a proxy evaluation layer for the baseline risk model. This makes the project more credible by exposing metrics, caveats, and feature weights instead of only showing a risk map.
+
+New endpoint:
+
+- `GET /api/risk/evaluation`
+
+Regenerate the evaluation artifact:
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/evaluate_risk_baseline.py
+```
+
+The script writes `models/risk_baseline_evaluation.json`.
+
+Current proxy metrics:
+
+- ROC AUC: 0.975
+- Precision: 0.2
+- Recall: 1.0
+- F1: 0.333
+
+These are proxy diagnostics against sample FIRMS-proximity labels, not operational validation. The next true modeling step is to use MTBS burn perimeters as labels and evaluate with spatial/temporal holdouts.
+
+## Phase 11 Spatial Copilot + Forecast + ETL
+
+Phase 11 adds the first agentic spatial intelligence workflow without requiring an LLM key. The copilot uses a deterministic planner so demos are reliable and answers stay grounded in computed metrics.
+
+New endpoints:
+
+- `POST /api/copilot/query`
+- `GET /api/forecast/risk-grid?horizon_hours=24|48|72&data_source=&bbox=&min_confidence=`
+
+Copilot example:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/copilot/query" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Show wildfire risk near dense population zones in Arizona.","data_source":"sample","min_confidence":50}'
+```
+
+Forecast example:
+
+```bash
+curl "http://127.0.0.1:8000/api/forecast/risk-grid?data_source=sample&horizon_hours=72"
+```
+
+Scheduled ETL:
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/run_etl.py --mode sample
+python scripts/run_etl.py --mode live
+python scripts/run_etl.py --mode db-refresh
+```
+
+ETL logs are written to `data/processed/etl_runs/`. Optional keys are skipped with explicit log entries when missing.
+
+## Phase 12 Southwest + H3 Scaling
+
+Phase 12 scales the app from Arizona-first to a Southwest spatial intelligence foundation while keeping wildfire as the core hazard.
+
+New endpoints:
+
+- `GET /api/regions`
+- `GET /api/risk/h3-grid?region=AZ|CA|NV|NM|TX|CO|southwest&h3_resolution=4|5|6&data_source=`
+- `POST /api/simulations/risk-scenario`
+
+H3 risk example:
+
+```bash
+curl "http://127.0.0.1:8000/api/risk/h3-grid?region=southwest&h3_resolution=5&data_source=sample"
+```
+
+What-if example:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/simulations/risk-scenario" \
+  -H "Content-Type: application/json" \
+  -d '{"region":"southwest","h3_resolution":5,"horizon_hours":72,"temperature_delta_c":3,"drought_multiplier":1.2,"wind_multiplier":1.1,"data_source":"sample"}'
+```
+
+Regional ETL:
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/run_etl.py --mode sample --region southwest
+python scripts/run_etl.py --mode live --region southwest
+python scripts/run_etl.py --mode db-refresh --region southwest
+```
+
+The H3 layer uses real H3 cell IDs and geometries with deterministic regional priors/exposure fallbacks for non-Arizona states until expanded live loaders are populated.
