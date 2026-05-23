@@ -288,6 +288,60 @@ input[type="range"] {
   padding-bottom: 6px;
 }
 
+.guide-panel {
+  border-color: #bfd8cd;
+}
+
+.guide-summary {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.guide-summary strong {
+  color: #183c35;
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.guide-summary p {
+  margin: 0;
+  color: #4f665e;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.workflow-list {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-list div {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+}
+
+.workflow-list span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: #183c35;
+  border-radius: 999px;
+}
+
+.workflow-list p {
+  margin: 2px 0 0;
+  color: #314b44;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
 .az-intelligence-panel {
   border-color: #f3c7a1;
 }
@@ -803,6 +857,67 @@ dd {
 
 .map-status strong {
   color: #b42318;
+}
+
+.map-legend-card {
+  position: absolute;
+  right: 18px;
+  bottom: 96px;
+  display: grid;
+  gap: 8px;
+  min-width: 190px;
+  padding: 12px;
+  color: #183c35;
+  background: rgb(255 255 255 / 0.93);
+  border: 1px solid #dbe5e0;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgb(22 38 35 / 0.12);
+}
+
+.map-legend-card strong {
+  font-size: 0.82rem;
+}
+
+.map-legend-card div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3f5750;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.legend-dot.fire {
+  background: #ef4444;
+  box-shadow: 0 0 0 5px rgb(239 68 68 / 0.14);
+}
+
+.legend-dot.cluster {
+  background: #2563eb;
+  box-shadow: 0 0 0 5px rgb(37 99 235 / 0.12);
+}
+
+.legend-dot.hotspot {
+  background: #f97316;
+  box-shadow: 0 0 0 7px rgb(249 115 22 / 0.18);
+}
+
+.legend-line {
+  display: inline-block;
+  width: 20px;
+  height: 3px;
+  border-radius: 999px;
+}
+
+.legend-line.boundary {
+  background: #0e7490;
 }
 
 @media (max-width: 860px) {

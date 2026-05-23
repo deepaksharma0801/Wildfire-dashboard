@@ -254,6 +254,12 @@ function App() {
   const requestDataSource =
     filters.dataSource === "auto" && selectedRegionCode !== "AZ" ? "sample" : filters.dataSource;
   const isArizonaFocus = selectedRegionCode === "AZ";
+  const primaryQuestion = isArizonaFocus
+    ? "Which Arizona counties and grid cells need attention?"
+    : "Where are the broad Southwest wildfire risk hotspots?";
+  const mapReadingHint = isArizonaFocus
+    ? "Orange points are fire detections, blue circles group nearby detections, and the shaded grid is the baseline risk layer."
+    : "Orange points are fire detections, blue circles group nearby detections, and soft risk hotspots summarize the regional model.";
 
   function enterArizonaFocus() {
     setSelectedRegionCode("AZ");
@@ -1801,6 +1807,31 @@ function App() {
           </button>
         </section>
 
+        <section className="control-panel guide-panel" aria-label="Dashboard guide">
+          <div className="section-heading">
+            <BrainCircuit size={18} aria-hidden="true" />
+            <h2>Start Here</h2>
+          </div>
+          <div className="guide-summary">
+            <strong>{primaryQuestion}</strong>
+            <p>{mapReadingHint}</p>
+          </div>
+          <div className="workflow-list">
+            <div>
+              <span>1</span>
+              <p>{isArizonaFocus ? "Read AZ Intelligence for the top counties." : "Scan the regional hotspots."}</p>
+            </div>
+            <div>
+              <span>2</span>
+              <p>{isArizonaFocus ? "Click a county, grid cell, detection, or cluster." : "Open Arizona Focus for deeper drill-down."}</p>
+            </div>
+            <div>
+              <span>3</span>
+              <p>{isArizonaFocus ? "Use Incident Summary and AI Report after selecting a cluster." : "Ask Copilot a spatial question or run a scenario."}</p>
+            </div>
+          </div>
+        </section>
+
         {isArizonaFocus ? (
           <section className="detail-panel az-intelligence-panel" aria-label="Arizona risk intelligence">
             <div className="section-heading">
@@ -1905,19 +1936,19 @@ function App() {
 
         <section className="metric-grid" aria-label="Detection metrics">
           <div className="metric-tile">
-            <span>Detections</span>
+            <span>Fire detections</span>
             <strong>{stats.count}</strong>
           </div>
           <div className="metric-tile">
-            <span>Avg confidence</span>
+            <span>Avg detection confidence</span>
             <strong>{stats.averageConfidence}%</strong>
           </div>
           <div className="metric-tile">
-            <span>Peak FRP</span>
+            <span>Peak fire intensity</span>
             <strong>{stats.peakFrp}</strong>
           </div>
           <div className="metric-tile">
-            <span>Clusters</span>
+            <span>Incident groups</span>
             <strong>{clusters.features.length}</strong>
           </div>
           <div className="metric-tile">
@@ -2001,15 +2032,15 @@ function App() {
             <h2>Data Feed</h2>
           </div>
           <div className="source-card">
-            <span>Resolved source</span>
+            <span>Fire data</span>
             <strong>{fires.metadata?.source ?? "pending"}</strong>
           </div>
           <div className="source-card">
-            <span>County source</span>
+            <span>Boundary data</span>
             <strong>{counties.metadata?.source ?? "pending"}</strong>
           </div>
           <div className="source-card">
-            <span>Cluster method</span>
+            <span>Incident grouping</span>
             <strong>{clusters.metadata?.cluster_method ?? "pending"}</strong>
           </div>
           <div className="source-card">
@@ -2063,7 +2094,7 @@ function App() {
           </div>
           <div className="layer-row">
             <span className="layer-dot cluster" />
-            <span>Incident clusters</span>
+            <span>Incident groups</span>
           </div>
           <div className="layer-row">
             <span className="layer-dot boundary" />
@@ -2649,6 +2680,19 @@ function App() {
               : `${stats.count} detections visible in ${selectedRegion.label} from ${fires.metadata?.source ?? "source"}`}
           </span>
           {error ? <strong>{error}</strong> : null}
+        </div>
+        <div className="map-legend-card" aria-label="Map legend">
+          <strong>{isArizonaFocus ? "Arizona map" : "Regional map"}</strong>
+          <div><span className="legend-dot fire" />Fire detection</div>
+          <div><span className="legend-dot cluster" />Incident group</div>
+          {isArizonaFocus ? (
+            <>
+              <div><span className="legend-line boundary" />County boundary</div>
+              <div><span className="legend-swatch high" />Higher risk grid</div>
+            </>
+          ) : (
+            <div><span className="legend-dot hotspot" />Risk hotspot</div>
+          )}
         </div>
       </section>
     </main>

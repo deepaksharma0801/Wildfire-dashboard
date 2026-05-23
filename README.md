@@ -1,8 +1,13 @@
 # Wildfire GeoAI Intelligence Platform
 
-A deployable geospatial AI portfolio project for wildfire monitoring, risk analysis, satellite-based damage mapping, and AI-generated situation reports.
+A deployable geospatial AI portfolio project for wildfire monitoring, risk analysis, satellite-based damage mapping, spatial copilot workflows, and AI-generated situation reports.
 
-The first build will focus on wildfire intelligence for the U.S. West/Southwest. The architecture should remain extensible to floods, storms, and other hazards later, but the MVP stays narrow enough to ship.
+The current product has two clear demo modes:
+
+- **Arizona Focus**: the detailed operational workspace with counties, fire detections, incident groups, rectangular risk grids, exposure summaries, forecasts, satellite analysis, and AZ county risk intelligence.
+- **Southwest Regional View**: a simplified scaling view across Arizona, California, Nevada, New Mexico, Texas, and Colorado using H3-based regional risk hotspots and what-if scenario screening.
+
+The platform remains wildfire-first so the demo is coherent, but the architecture is designed to expand toward multi-hazard climate intelligence later.
 
 ## Core Idea
 
@@ -12,6 +17,9 @@ Build a map-first decision-support system that combines:
 - Satellite imagery and burn-area analysis
 - Weather, vegetation, terrain, population, and infrastructure features
 - Spatial risk scoring and short-horizon forecasting
+- Arizona county risk rankings and driver explanations
+- Southwest H3 spatial indexing for regional scaling
+- Deterministic Spatial Copilot queries over map data
 - LLM-generated incident reports grounded in geospatial metrics
 - An interactive React map for exploration and demo
 
@@ -20,8 +28,8 @@ Build a map-first decision-support system that combines:
 - Frontend: React, Vite, MapLibre GL, Nginx for container serving
 - Backend: FastAPI
 - Spatial storage: PostgreSQL/PostGIS
-- Geospatial processing: GeoJSON, PostGIS spatial queries, Python scoring utilities
-- AI layer: grounded report generation from structured incident summaries
+- Geospatial processing: GeoJSON, H3 indexing, PostGIS spatial queries, Python scoring utilities
+- AI layer: deterministic Spatial Copilot and grounded report generation from structured incident summaries
 - CV/imagery layer: Sentinel-2-style before/after burn scar demo
 - Deployment: Docker Compose with frontend, backend, and PostGIS services
 
@@ -64,19 +72,21 @@ Open `http://127.0.0.1:5173`.
 
 ## Demo Flow
 
-1. View Arizona fire detections on the map.
-2. Click a fire point to inspect raw FIRMS-style metadata.
-3. Click a blue incident cluster to load exposure and weather context.
-4. Generate a grounded AI-style incident report.
-5. Click the risk grid to inspect model score components.
-6. Review Model Diagnostics to see proxy evaluation metrics.
-7. Ask the Spatial Copilot a supported geospatial question.
+1. Start in **Arizona Focus** and read the **Start Here** guide.
+2. Review **AZ Intelligence** for the top counties, statewide summary, and primary risk driver.
+3. Click a county ranking to highlight the county on the map.
+4. Click a fire point to inspect raw FIRMS-style metadata.
+5. Click a blue incident group to load exposure and weather context.
+6. Generate a grounded AI-style incident report from the selected incident summary.
+7. Click the rectangular Arizona risk grid to inspect model score components and driver explanations.
 8. Switch the forecast horizon between 24h, 48h, and 72h.
-9. Review the Satellite Analysis panel and burn scar mask.
+9. Ask the Spatial Copilot a supported geospatial question.
+10. Review the Satellite Analysis panel and burn scar mask.
+11. Switch to **Southwest** to show regional H3 risk hotspots and what-if scenario screening.
 
 ## Resume Bullet
 
-Built a full-stack GeoAI wildfire intelligence platform with React, MapLibre, FastAPI, PostGIS, NASA FIRMS ingestion, Census exposure analysis, NOAA weather context, grounded report generation, baseline spatial risk scoring, and satellite burn scar visualization.
+Built a full-stack GeoAI wildfire intelligence platform with React, MapLibre, FastAPI, PostGIS, H3 spatial indexing, NASA FIRMS ingestion, Census exposure analysis, NOAA weather context, deterministic spatial copilot workflows, grounded report generation, baseline risk forecasting, Arizona county intelligence, Southwest scenario screening, and satellite burn scar visualization.
 
 ## Phase 1 Local Demo
 
@@ -402,3 +412,37 @@ python scripts/run_etl.py --mode db-refresh --region southwest
 ```
 
 The H3 layer uses real H3 cell IDs and geometries with deterministic regional priors/exposure fallbacks for non-Arizona states until expanded live loaders are populated.
+
+## Phase 13 Arizona Risk Intelligence + Usability
+
+Phase 13 restores Arizona as the high-detail drill-down product and makes the interface easier for a reviewer to understand without explanation.
+
+New endpoint:
+
+- `GET /api/az/risk-intelligence?start_date=&end_date=&min_confidence=&data_source=&horizon_hours=`
+
+Useful API example:
+
+```bash
+curl "http://127.0.0.1:8000/api/az/risk-intelligence?data_source=sample&horizon_hours=72"
+```
+
+The Arizona intelligence response includes:
+
+- ranked Arizona counties
+- statewide active detection and risk-grid summary
+- high/extreme cell counts
+- rising forecast cell counts
+- county exposure proxies
+- confidence and intensity mixes
+- top driver explanations
+- data-source labels and caveats
+
+The frontend now separates the experience into:
+
+- **Start Here**: a short workflow guide and map-reading explanation.
+- **AZ Intelligence**: top county rankings and statewide risk summary.
+- **Arizona map legend**: fire detections, incident groups, county boundaries, and higher-risk grid cells.
+- **Regional map legend**: fire detections, incident groups, and simplified Southwest risk hotspots.
+
+Arizona mode intentionally keeps the detailed rectangular risk grid, county boundaries, incident workflow, forecast panel, imagery panel, and report workflow. Southwest mode intentionally stays simpler and uses regional hotspots instead of dense Arizona-style analysis layers.
