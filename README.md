@@ -1,13 +1,46 @@
 # Wildfire GeoAI Intelligence Platform
 
+![React](https://img.shields.io/badge/Frontend-React%20%2B%20MapLibre-1f6f5f)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-059669)
+![PostGIS](https://img.shields.io/badge/Spatial-PostGIS%20%2B%20H3-0e7490)
+![GeoAI](https://img.shields.io/badge/GeoAI-Risk%20Forecasting-c2410c)
+![Copilot](https://img.shields.io/badge/AI-Spatial%20Copilot-4f46e5)
+![Status](https://img.shields.io/badge/Status-Portfolio%20Demo-111827)
+
 A deployable geospatial AI portfolio project for wildfire monitoring, risk analysis, satellite-based damage mapping, spatial copilot workflows, and AI-generated situation reports.
 
-The current product has two clear demo modes:
+The current product has two clear demo modes.
 
-- **Arizona Focus**: the detailed operational workspace with counties, fire detections, incident groups, rectangular risk grids, exposure summaries, forecasts, satellite analysis, and AZ county risk intelligence.
-- **Southwest Regional View**: a simplified scaling view across Arizona, California, Nevada, New Mexico, Texas, and Colorado using H3-based regional risk hotspots and what-if scenario screening.
+| Arizona Focus | Southwest Regional View |
+| --- | --- |
+| Detailed operational dashboard for county-level wildfire intelligence. | Simplified regional scaling view across six Southwest states. |
+| County rankings, rectangular risk grid, incident groups, exposure, weather, forecast, reports, and satellite analysis. | H3 spatial indexing, regional hotspots, state switching, and what-if scenario screening. |
+| Best for showing depth and decision-support detail. | Best for showing system design and scalable geospatial architecture. |
+
+```mermaid
+flowchart LR
+    user["Reviewer opens app"] --> az["Arizona Focus"]
+    user --> sw["Southwest View"]
+    az --> counties["County rankings"]
+    az --> incidents["Incident summaries"]
+    az --> reports["Grounded AI reports"]
+    az --> imagery["Satellite burn scar demo"]
+    sw --> h3["H3 risk hotspots"]
+    sw --> scenario["What-if simulation"]
+    sw --> copilot["Spatial Copilot"]
+```
 
 The platform remains wildfire-first so the demo is coherent, but the architecture is designed to expand toward multi-hazard climate intelligence later.
+
+## At A Glance
+
+| Layer | What It Does | Why It Matters |
+| --- | --- | --- |
+| Map intelligence | Renders fire detections, incident groups, county boundaries, risk grids, burn scars, and regional hotspots. | Shows real geospatial product sense, not only notebook modeling. |
+| Spatial analytics | Computes county rankings, grid risk scores, exposure proxies, clusters, and forecast trends. | Demonstrates practical decision-support engineering. |
+| AI workflows | Uses deterministic Spatial Copilot and grounded incident reports. | Shows AI beyond chatbots, with constrained outputs tied to computed facts. |
+| Data engineering | Ingests FIRMS, counties, ACS-style exposure data, NOAA weather, and sample satellite assets. | Shows messy-data pipelines and public-data integration. |
+| Scaling foundation | Adds PostGIS, H3 indexing, region configuration, and scheduled ETL commands. | Shows architecture that can grow beyond a single-state dashboard. |
 
 ## Core Idea
 
@@ -23,6 +56,47 @@ Build a map-first decision-support system that combines:
 - LLM-generated incident reports grounded in geospatial metrics
 - An interactive React map for exploration and demo
 
+## System Architecture
+
+```mermaid
+flowchart TB
+    subgraph sources["Public Data Sources"]
+        firms["NASA FIRMS active fires"]
+        census["Census counties + ACS exposure"]
+        nws["NOAA/NWS weather"]
+        imagery_source["Sentinel-style sample imagery"]
+    end
+
+    subgraph backend["FastAPI Backend"]
+        ingest["ETL + normalization"]
+        geo["GeoJSON + PostGIS queries"]
+        risk["Risk grid + forecast scoring"]
+        h3["H3 regional risk cells"]
+        copilot["Deterministic spatial planner"]
+        reports["Grounded report generator"]
+    end
+
+    subgraph frontend["React + MapLibre Frontend"]
+        map["Interactive map"]
+        az_panel["AZ Intelligence panel"]
+        incident_panel["Incident drawer"]
+        forecast_panel["Forecast panel"]
+        scenario_panel["Scenario panel"]
+    end
+
+    firms --> ingest
+    census --> ingest
+    nws --> geo
+    imagery_source --> geo
+    ingest --> geo
+    geo --> risk
+    geo --> h3
+    risk --> copilot
+    risk --> reports
+    h3 --> copilot
+    backend --> frontend
+```
+
 ## Implemented Stack
 
 - Frontend: React, Vite, MapLibre GL, Nginx for container serving
@@ -32,6 +106,37 @@ Build a map-first decision-support system that combines:
 - AI layer: deterministic Spatial Copilot and grounded report generation from structured incident summaries
 - CV/imagery layer: Sentinel-2-style before/after burn scar demo
 - Deployment: Docker Compose with frontend, backend, and PostGIS services
+
+## Interface Guide
+
+| UI Area | How To Use It |
+| --- | --- |
+| **Start Here** | Read the current mode's three-step workflow before exploring layers. |
+| **AZ Intelligence** | Use the top county ranking to decide where to click first in Arizona. |
+| **Map legend** | Interpret fire detections, incident groups, county boundaries, risk grids, and hotspots. |
+| **Spatial Copilot** | Ask supported questions like `Which counties are most vulnerable next week?` |
+| **Forecast** | Compare 24h, 48h, and 72h baseline trend outputs. |
+| **Satellite Analysis** | Inspect the before/after burn scar demo and affected-area overlay. |
+
+## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant ETL as ETL scripts
+    participant API as FastAPI
+    participant DB as PostGIS / local files
+    participant UI as React map
+    participant User as Reviewer
+
+    ETL->>DB: Load fires, counties, exposure, risk artifacts
+    UI->>API: Request fires, counties, risk, forecast, imagery
+    API->>DB: Query spatial data and fallback files
+    DB-->>API: GeoJSON + structured metrics
+    API-->>UI: Layers, rankings, summaries, caveats
+    User->>UI: Click county, grid cell, detection, or incident group
+    UI->>API: Request summary/report/copilot response
+    API-->>UI: Grounded explanation from computed fields
+```
 
 ## Project Docs
 
@@ -72,6 +177,19 @@ Open `http://127.0.0.1:5173`.
 
 ## Demo Flow
 
+```mermaid
+flowchart LR
+    start["Start Here"] --> rank["AZ Intelligence rankings"]
+    rank --> county["Click county"]
+    county --> grid["Inspect risk grid"]
+    grid --> cluster["Select incident group"]
+    cluster --> summary["Exposure + weather summary"]
+    summary --> report["Generate grounded report"]
+    report --> satellite["Review satellite panel"]
+    satellite --> regional["Switch to Southwest"]
+    regional --> scenario["Run what-if scenario"]
+```
+
 1. Start in **Arizona Focus** and read the **Start Here** guide.
 2. Review **AZ Intelligence** for the top counties, statewide summary, and primary risk driver.
 3. Click a county ranking to highlight the county on the map.
@@ -83,6 +201,17 @@ Open `http://127.0.0.1:5173`.
 9. Ask the Spatial Copilot a supported geospatial question.
 10. Review the Satellite Analysis panel and burn scar mask.
 11. Switch to **Southwest** to show regional H3 risk hotspots and what-if scenario screening.
+
+## What This Demonstrates
+
+| Hiring Signal | Evidence In This Project |
+| --- | --- |
+| Full-stack product engineering | React map UI, FastAPI services, Docker Compose deployment, clear demo flow. |
+| Geospatial systems | MapLibre, GeoJSON, bounding-box filters, PostGIS, county boundaries, H3 cells. |
+| AI/ML product thinking | Risk scoring, 24-72h forecast trends, model diagnostics, grounded reports. |
+| Data engineering | FIRMS ingestion, ACS-style exposure enrichment, ETL runner, source fallbacks. |
+| Human-centered AI | Copilot answers and report text are constrained to computed dashboard facts. |
+| Recruiter-friendly storytelling | Arizona depth plus Southwest scale, with caveats and explainability visible. |
 
 ## Resume Bullet
 
