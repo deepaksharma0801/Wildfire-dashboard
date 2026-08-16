@@ -9,7 +9,7 @@
 
 A deployable geospatial AI portfolio project for wildfire monitoring, risk analysis, satellite-based damage mapping, spatial copilot workflows, and AI-generated situation reports.
 
-The current product has two clear demo modes.
+The current product has two clear demo modes. Clarified.
 
 | Arizona Focus | Southwest Regional View |
 | --- | --- |
@@ -149,7 +149,7 @@ sequenceDiagram
 
 ## Quick Start
 
-Run the full portfolio demo with Docker:
+Run the full portfolio demo with Docker( recc):
 
 ```bash
 docker compose up --build
